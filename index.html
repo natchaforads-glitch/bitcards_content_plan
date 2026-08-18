@@ -93,8 +93,10 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .img-section { margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid #f0f0ee; }
 .img-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; margin-top:10px; }
 .img-thumb { position:relative; border-radius:8px; overflow:hidden; aspect-ratio:9/16; background:#f0f0ee; border:1px solid #e5e5e1; }
-.img-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.img-thumb img, .img-thumb video { width:100%; height:100%; object-fit:cover; display:block; }
 .img-thumb .remove-btn { position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.65); color:white; border:none; border-radius:50%; width:22px; height:22px; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.img-thumb .download-btn { position:absolute; top:5px; left:5px; background:rgba(0,0,0,0.65); color:white; border:none; border-radius:50%; width:22px; height:22px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; }
+.img-thumb .download-btn:hover { background:rgba(45,91,255,0.9); }
 .upload-zone { border:1.5px dashed #ccc; border-radius:8px; padding:1.2rem 1rem; text-align:center; cursor:pointer; background:#fafafa; transition:all .15s; margin-top:10px; }
 .upload-zone:hover { border-color:#f7931a; background:#fff8f0; }
 .upload-zone input { display:none; }
@@ -105,6 +107,18 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .placeholder { text-align:center; padding:2.5rem; color:#999; font-size:14px; }
 .placeholder span { font-size:28px; display:block; margin-bottom:8px; }
 
+/* Access gate */
+.gate-overlay { position:fixed; inset:0; background:#111; display:flex; align-items:center; justify-content:center; z-index:9999; }
+.gate-box { background:white; border-radius:14px; padding:2.5rem 2rem; max-width:340px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+.gate-box h2 { font-size:18px; margin-bottom:8px; }
+.gate-box p { font-size:13px; color:#666; margin-bottom:20px; }
+.gate-input { width:100%; padding:10px 14px; border:1.5px solid #ddd; border-radius:8px; font-size:15px; margin-bottom:12px; outline:none; }
+.gate-input:focus { border-color:#2d5bff; }
+.gate-btn { width:100%; padding:10px; background:#1a1a1a; color:white; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
+.gate-btn:hover { background:#333; }
+.gate-error { color:#e63946; font-size:12px; margin-top:8px; min-height:16px; }
+.view-badge { display:inline-block; font-size:11px; font-weight:600; background:#f0f0ee; color:#666; border-radius:20px; padding:3px 10px; margin-left:8px; }
+
 @media(max-width:600px){
   .brief-grid { grid-template-columns:1fr; }
   .day-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
@@ -113,10 +127,19 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 </style>
 </head>
 <body>
+<div class="gate-overlay" id="gate-overlay">
+  <div class="gate-box">
+    <h2>🔒 Bitcards Content Plan</h2>
+    <p>Enter your team password to continue</p>
+    <input type="password" id="gate-input" class="gate-input" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')submitGate()">
+    <button class="gate-btn" onclick="submitGate()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
 <div class="save-indicator" id="save-indicator">💾 Saved</div>
-<div class="container">
+<div class="container" id="main-container" style="display:none">
   <div class="header">
-    <h1>Bitcards — 30-Day Content Plan</h1>
+    <h1>Bitcards — 30-Day Content Plan<span class="view-badge" id="role-badge" style="display:none"></span></h1>
     <div class="tagline">"The bitcoin you can actually hand someone."</div>
     <p>Based on U.S. Market Entry Strategy · Q4 2026 Launch · Awareness → Trust → Social Proof → Conversion</p>
     <div class="journey-bar">
@@ -149,19 +172,7 @@ const UPLOAD_PRESET = 'bitcards_uploads';
 
 function loadCaptions(){ try{ return JSON.parse(localStorage.getItem(LS_CAPTIONS)||'{}'); }catch(e){ return {}; } }
 function saveCaptions(o){ try{ localStorage.setItem(LS_CAPTIONS,JSON.stringify(o)); }catch(e){ showToast('⚠️ Could not save','#e63946'); } }
-// imgStore starts as the embedded defaults; shared uploads are merged in from the server on load.
-async function loadServerImages(){
-  try{
-    const res = await fetch('/api/images');
-    if(!res.ok) return;
-    const data = await res.json();
-    for(const key in data){
-      const base = defaultImgs[key] ? [...defaultImgs[key]] : [];
-      imgStore[key] = [...base, ...data[key]];
-    }
-    render();
-  }catch(e){ console.error('Could not load shared images', e); }
-}
+// imgStore starts as the embedded defaults; shared uploads are merged in once the access gate succeeds.
 
 function showToast(msg,bg){
   const el=document.getElementById('save-indicator');
@@ -181,7 +192,7 @@ const defaultImgs = {
 
 let captionEdits = loadCaptions();
 let imgStore     = Object.assign({}, defaultImgs);
-loadServerImages(); // fetch shared uploads from all visitors, merge in, then re-render
+window.addEventListener('DOMContentLoaded', tryAutoUnlock);
 let currentWeek  = 1;
 let selectedId   = null;
 let editingDay   = null;
@@ -459,11 +470,11 @@ function compressImage(file){
     reader.onload=e=>{
       const img=new Image();
       img.onload=()=>{
-        const MAX=1000, scale=img.width>MAX?MAX/img.width:1;
+        const MAX=1600, scale=img.width>MAX?MAX/img.width:1;
         const c=document.createElement('canvas');
         c.width=img.width*scale; c.height=img.height*scale;
         c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-        c.toBlob(blob=>blob?resolve(blob):reject(new Error('toBlob failed')), 'image/jpeg', 0.82);
+        c.toBlob(blob=>blob?resolve(blob):reject(new Error('toBlob failed')), 'image/jpeg', 0.9);
       };
       img.onerror=reject;
       img.src=e.target.result;
@@ -473,63 +484,101 @@ function compressImage(file){
   });
 }
 
-async function uploadToCloudinary(blob, dayId){
+async function uploadToCloudinary(blob, dayId, isVideo, ext){
   const formData=new FormData();
-  formData.append('file', blob, `day${dayId}-${Date.now()}.jpg`);
+  formData.append('file', blob, `day${dayId}-${Date.now()}.${ext}`);
   formData.append('upload_preset', UPLOAD_PRESET);
   formData.append('folder', 'bitcards_v5');
-  const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method:'POST', body:formData });
+  // 'auto' lets Cloudinary route images vs video to the right pipeline from one endpoint,
+  // and applies its own light optimization to video on delivery.
+  const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, { method:'POST', body:formData });
   if(!res.ok) throw new Error('Cloudinary upload failed');
   const data=await res.json();
   return data.secure_url;
 }
 
 // ── Edit password gate ─────────────────────────────────────────────────────────
-const EDIT_PW_KEY = 'bitcards_edit_pw';
+const ACCESS_PW_KEY = 'bitcards_access_pw';
+let currentRole = null; // 'view' | 'edit' | null (not yet unlocked)
 
-function getStoredEditPassword(){
-  try { return sessionStorage.getItem(EDIT_PW_KEY) || ''; } catch(e){ return ''; }
+function getStoredAccessPassword(){
+  try { return sessionStorage.getItem(ACCESS_PW_KEY) || ''; } catch(e){ return ''; }
 }
-function setStoredEditPassword(pw){
-  try { sessionStorage.setItem(EDIT_PW_KEY, pw); } catch(e){}
+function setStoredAccessPassword(pw){
+  try { sessionStorage.setItem(ACCESS_PW_KEY, pw); } catch(e){}
 }
-function clearStoredEditPassword(){
-  try { sessionStorage.removeItem(EDIT_PW_KEY); } catch(e){}
+function clearStoredAccessPassword(){
+  try { sessionStorage.removeItem(ACCESS_PW_KEY); } catch(e){}
 }
 
-// Ensures we have a password to try. Prompts once if we don't have one yet.
-// Returns '' if the user cancels.
-function ensureEditPassword(){
-  let pw = getStoredEditPassword();
-  if (!pw) {
-    pw = window.prompt('Enter the edit password to make changes:') || '';
-    if (pw) setStoredEditPassword(pw);
+function showGate(){
+  document.getElementById('gate-overlay').style.display = 'flex';
+  document.getElementById('main-container').style.display = 'none';
+}
+function hideGate(){
+  document.getElementById('gate-overlay').style.display = 'none';
+  document.getElementById('main-container').style.display = '';
+}
+
+// One password box unlocks either the 'view' or 'edit' role, whichever password matches server-side.
+async function submitGate(){
+  const input = document.getElementById('gate-input');
+  const errorEl = document.getElementById('gate-error');
+  const pw = input.value;
+  errorEl.textContent = '';
+  if(!pw){ errorEl.textContent = 'Enter a password'; return; }
+
+  try{
+    const res = await fetch('/api/images', { headers: { 'X-Access-Password': pw } });
+    if(res.status === 401){ errorEl.textContent = 'Wrong password — try again'; return; }
+    if(!res.ok){ errorEl.textContent = 'Something went wrong — try again'; return; }
+
+    const data = await res.json();
+    currentRole = data.role;
+    setStoredAccessPassword(pw);
+
+    for(const key in data.images){
+      const base = defaultImgs[key] ? [...defaultImgs[key]] : [];
+      imgStore[key] = [...base, ...data.images[key]];
+    }
+
+    hideGate();
+    const badge = document.getElementById('role-badge');
+    if(currentRole === 'view'){ badge.style.display=''; badge.textContent='👁 View only'; }
+    else { badge.style.display='none'; }
+    render();
+  }catch(e){
+    console.error(e);
+    errorEl.textContent = 'Could not connect — try again';
   }
-  return pw;
 }
 
-// Wraps a fetch call to /api/images with the password header, retrying once
-// with a fresh prompt if the server says the password was wrong.
-async function editFetch(payload){
-  let pw = ensureEditPassword();
-  if (!pw) throw new Error('No password entered');
+// If this tab already unlocked the gate earlier this session, skip straight in.
+async function tryAutoUnlock(){
+  const pw = getStoredAccessPassword();
+  if(!pw) return;
+  document.getElementById('gate-input').value = pw;
+  await submitGate();
+}
 
-  let res = await fetch('/api/images', {
+// Wraps a fetch call to /api/images with the stored access password.
+// Edit UI is hidden for view-only users, but this is a safety net regardless.
+async function editFetch(payload){
+  if(currentRole !== 'edit'){
+    showToast('⚠️ Edit password required for this','#e63946');
+    throw new Error('Not authorized to edit');
+  }
+  const pw = getStoredAccessPassword();
+  const res = await fetch('/api/images', {
     method:'POST',
-    headers:{'Content-Type':'application/json', 'X-Edit-Password': pw},
+    headers:{'Content-Type':'application/json', 'X-Access-Password': pw},
     body: JSON.stringify(payload)
   });
-
-  if (res.status === 401) {
-    clearStoredEditPassword();
-    showToast('⚠️ Wrong password','#e63946');
-    pw = ensureEditPassword();
-    if (!pw) throw new Error('No password entered');
-    res = await fetch('/api/images', {
-      method:'POST',
-      headers:{'Content-Type':'application/json', 'X-Edit-Password': pw},
-      body: JSON.stringify(payload)
-    });
+  if(res.status === 401){
+    clearStoredAccessPassword();
+    showToast('⚠️ Session expired — please re-enter your password','#e63946');
+    showGate();
+    throw new Error('Unauthorized');
   }
   return res;
 }
@@ -544,10 +593,20 @@ async function handleUpload(dayId,input){
   input.value='';
   if(!imgStore[dayId]) imgStore[dayId]=[];
   for(const file of files){
-    showToast('⬆️ Uploading…');
+    const isVideo = file.type.startsWith('video/');
+    showToast(isVideo ? '⬆️ Uploading video…' : '⬆️ Uploading…');
     try{
-      const blob=await compressImage(file);
-      const url=await uploadToCloudinary(blob, dayId);
+      let blob, ext;
+      if(isVideo){
+        // No client-side video compression — browsers can't do this reliably.
+        // Cloudinary applies its own light optimization on delivery.
+        blob = file;
+        ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+      } else {
+        blob = await compressImage(file);
+        ext = 'jpg';
+      }
+      const url = await uploadToCloudinary(blob, dayId, isVideo, ext);
       await saveImageRecord(dayId, url);
       imgStore[dayId].push(url);
       showToast('📎 Saved — visible to everyone');
@@ -575,6 +634,7 @@ async function removeImg(dayId,idx){
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderCaptionBlock(d){
   const cur=getCaption(d.id,d.en), edited=isEdited(d.id,d.en), editing=editingDay===d.id;
+  const canEdit = currentRole === 'edit';
   if(editing) return `
     <div class="caption-block">
       <div class="caption-label-row"><div class="sec-label" style="margin:0">Caption</div><span style="font-size:11px;color:#999">— editing</span></div>
@@ -593,9 +653,9 @@ function renderCaptionBlock(d){
         <div class="sec-label" style="margin:0">Caption</div>
         ${edited?'<span class="edited-badge">Edited</span>':''}
       </div>
-      <div class="caption-display" onclick="startEdit(${d.id})" title="Click to edit">
+      <div class="caption-display" ${canEdit?`onclick="startEdit(${d.id})" title="Click to edit"`:''}>
         ${cur.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}
-        <span class="edit-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</span>
+        ${canEdit?`<span class="edit-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</span>`:''}
       </div>
       <div class="action-row">
         <button class="copy-btn" id="cb-${d.id}" onclick="copyCaption(${d.id},\`${d.en.replace(/\\/g,'\\\\').replace(/`/g,'\\`')}\`)">📋 Copy caption</button>
@@ -603,20 +663,44 @@ function renderCaptionBlock(d){
     </div>`;
 }
 
+function isVideoUrl(url){
+  return url.includes('/video/upload/') || /\.(mp4|mov|webm|m4v)($|\?)/i.test(url);
+}
+
+function downloadUrlFor(url){
+  // Force a real download (not inline playback/preview) via Cloudinary's fl_attachment flag.
+  // Falls back to the original URL for embedded base64 defaults, which download fine as-is.
+  if(url.startsWith('data:')) return url;
+  return url.replace('/upload/', '/upload/fl_attachment/');
+}
+
 function renderImgSection(dayId){
   const imgs=imgStore[dayId]||[];
+  const canEdit = currentRole === 'edit';
   return `
     <div class="img-section">
       <div class="sec-label">Visual References / Actual Assets</div>
       <div class="img-grid">
-        ${imgs.map((src,i)=>`<div class="img-thumb"><img src="${src}" alt="Visual ${i+1}"><button class="remove-btn" onclick="removeImg(${dayId},${i})">×</button></div>`).join('')}
+        ${imgs.map((src,i)=>{
+          const isVid = isVideoUrl(src);
+          const media = isVid
+            ? `<video src="${src}" controls muted playsinline></video>`
+            : `<img src="${src}" alt="Visual ${i+1}">`;
+          return `<div class="img-thumb">
+            ${media}
+            ${canEdit?`<button class="remove-btn" onclick="removeImg(${dayId},${i})">×</button>`:''}
+            <a class="download-btn" href="${downloadUrlFor(src)}" download title="Download">⬇</a>
+          </div>`;
+        }).join('')}
       </div>
+      ${canEdit?`
       <div class="upload-zone" onclick="document.getElementById('up-${dayId}').click()">
-        <input type="file" id="up-${dayId}" accept="image/*" multiple onchange="handleUpload(${dayId},this)">
+        <input type="file" id="up-${dayId}" accept="image/*,video/*" multiple onchange="handleUpload(${dayId},this)">
         <span class="uz-icon">📎</span>
-        <p>Click to upload images for Day ${dayId}</p>
+        <p>Click to upload images or videos for Day ${dayId}</p>
       </div>
       <p class="storage-note">Uploaded here — visible to everyone who opens this link</p>
+      `:`<p class="storage-note">👁 View-only access — ask a team editor to add photos or videos here</p>`}
     </div>`;
 }
 
