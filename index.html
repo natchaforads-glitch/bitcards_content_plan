@@ -484,12 +484,58 @@ async function uploadToCloudinary(blob, dayId){
   return data.secure_url;
 }
 
-async function saveImageRecord(dayId, url){
-  const res=await fetch('/api/images', {
+// ── Edit password gate ─────────────────────────────────────────────────────────
+const EDIT_PW_KEY = 'bitcards_edit_pw';
+
+function getStoredEditPassword(){
+  try { return sessionStorage.getItem(EDIT_PW_KEY) || ''; } catch(e){ return ''; }
+}
+function setStoredEditPassword(pw){
+  try { sessionStorage.setItem(EDIT_PW_KEY, pw); } catch(e){}
+}
+function clearStoredEditPassword(){
+  try { sessionStorage.removeItem(EDIT_PW_KEY); } catch(e){}
+}
+
+// Ensures we have a password to try. Prompts once if we don't have one yet.
+// Returns '' if the user cancels.
+function ensureEditPassword(){
+  let pw = getStoredEditPassword();
+  if (!pw) {
+    pw = window.prompt('Enter the edit password to make changes:') || '';
+    if (pw) setStoredEditPassword(pw);
+  }
+  return pw;
+}
+
+// Wraps a fetch call to /api/images with the password header, retrying once
+// with a fresh prompt if the server says the password was wrong.
+async function editFetch(payload){
+  let pw = ensureEditPassword();
+  if (!pw) throw new Error('No password entered');
+
+  let res = await fetch('/api/images', {
     method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({ dayId, url })
+    headers:{'Content-Type':'application/json', 'X-Edit-Password': pw},
+    body: JSON.stringify(payload)
   });
+
+  if (res.status === 401) {
+    clearStoredEditPassword();
+    showToast('⚠️ Wrong password','#e63946');
+    pw = ensureEditPassword();
+    if (!pw) throw new Error('No password entered');
+    res = await fetch('/api/images', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'X-Edit-Password': pw},
+      body: JSON.stringify(payload)
+    });
+  }
+  return res;
+}
+
+async function saveImageRecord(dayId, url){
+  const res = await editFetch({ dayId, url });
   if(!res.ok) throw new Error('Could not save to shared gallery');
 }
 
@@ -518,11 +564,7 @@ async function removeImg(dayId,idx){
   imgStore[dayId].splice(idx,1);
   render();
   try{
-    const res=await fetch('/api/images', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ dayId, url, action:'remove' })
-    });
+    const res = await editFetch({ dayId, url, action:'remove' });
     if(!res.ok) throw new Error('remove failed');
     showToast('🗑 Removed for everyone');
   }catch(e){
