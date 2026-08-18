@@ -3,80 +3,91 @@ import { put, list } from '@vercel/blob';
 const MANIFEST_PATH = 'bitcards-manifest.json';
 const TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const EDIT_PASSWORD = process.env.EDIT_PASSWORD;
+const VIEW_PASSWORD = process.env.VIEW_PASSWORD;
 
-function checkPassword(req) {
-        const supplied = req.headers['x-edit-password'];
-        return EDIT_PASSWORD && supplied === EDIT_PASSWORD;
+// Returns 'edit', 'view', or null depending on which password (if any) was supplied.
+function getRole(req) {
+  const supplied = req.headers['x-access-password'];
+  if (!supplied) return null;
+  if (EDIT_PASSWORD && supplied === EDIT_PASSWORD) return 'edit';
+  if (VIEW_PASSWORD && supplied === VIEW_PASSWORD) return 'view';
+  return null;
 }
 
 async function readManifest() {
-        try {
-                  const { blobs } = await list({ prefix: MANIFEST_PATH, token: TOKEN });
-                  const found = blobs.find((b) => b.pathname === MANIFEST_PATH);
-                  if (!found) return {};
-                  const res = await fetch(found.url, {
-                              cache: 'no-store',
-                              headers: { Authorization: `Bearer ${TOKEN}` },
-                  });
-                  if (!res.ok) return {};
-                  return await res.json();
-        } catch (e) {
-                  console.error('readManifest error', e);
-                  return {};
-        }
+  try {
+    const { blobs } = await list({ prefix: MANIFEST_PATH, token: TOKEN });
+    const found = blobs.find((b) => b.pathname === MANIFEST_PATH);
+    if (!found) return {};
+    // Private store: the blob URL requires the read-write token to fetch.
+    const res = await fetch(found.url, {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    });
+    if (!res.ok) return {};
+    return await res.json();
+  } catch (e) {
+    console.error('readManifest error', e);
+    return {};
+  }
 }
 
 async function writeManifest(data) {
-        await put(MANIFEST_PATH, JSON.stringify(data), {
-                  access: 'private',
-                  addRandomSuffix: false,
-                  allowOverwrite: true,
-                  contentType: 'application/json',
-                  token: TOKEN,
-        });
+  await put(MANIFEST_PATH, JSON.stringify(data), {
+    access: 'private',
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: 'application/json',
+    token: TOKEN,
+  });
 }
 
 export default async function handler(req, res) {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Edit-Password');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Access-Password');
 
   if (req.method === 'OPTIONS') {
-            return res.status(200).end();
+    return res.status(200).end();
   }
 
+  const role = getRole(req);
+
   if (req.method === 'GET') {
-            const data = await readManifest();
-            return res.status(200).json(data);
+    if (!role) {
+      return res.status(401).json({ error: 'Invalid or missing password' });
+    }
+    const data = await readManifest();
+    return res.status(200).json({ role, images: data });
   }
 
   if (req.method === 'POST') {
-            if (!checkPassword(req)) {
-                        return res.status(401).json({ error: 'Incorrect or missing edit password' });
-            }
+    if (role !== 'edit') {
+      return res.status(401).json({ error: 'Edit password required' });
+    }
 
-          let body = req.body;
-            if (typeof body === 'string') {
-                        try { body = JSON.parse(body); } catch (e) { body = {}; }
-            }
-            const { dayId, url, action } = body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch (e) { body = {}; }
+    }
+    const { dayId, url, action } = body || {};
 
-          if (!dayId || (!url && action !== 'clear')) {
-                      return res.status(400).json({ error: 'dayId and url are required' });
-          }
+    if (!dayId || (!url && action !== 'clear')) {
+      return res.status(400).json({ error: 'dayId and url are required' });
+    }
 
-          const data = await readManifest();
-            const key = String(dayId);
-            if (!data[key]) data[key] = [];
+    const data = await readManifest();
+    const key = String(dayId);
+    if (!data[key]) data[key] = [];
 
-          if (action === 'remove') {
-                      data[key] = data[key].filter((u) => u !== url);
-          } else {
-                      data[key].push(url);
-          }
+    if (action === 'remove') {
+      data[key] = data[key].filter((u) => u !== url);
+    } else {
+      data[key].push(url);
+    }
 
-          await writeManifest(data);
-            return res.status(200).json({ success: true, images: data[key] });
+    await writeManifest(data);
+    return res.status(200).json({ success: true, images: data[key] });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
