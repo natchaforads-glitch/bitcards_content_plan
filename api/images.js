@@ -22,7 +22,7 @@ async function readManifest() {
 
 async function writeManifest(data) {
       await put(MANIFEST_PATH, JSON.stringify(data), {
-              access: 'public',
+              access: 'private',
               addRandomSuffix: false,
               allowOverwrite: true,
               contentType: 'application/json',
