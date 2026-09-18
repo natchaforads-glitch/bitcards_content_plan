@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitcards — 30-Day Content Plan (Strategy Edition)</title>
+<title>Bitcards Content Plan</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; color: #1a1a1a; font-size: 15px; line-height: 1.6; }
@@ -58,6 +58,14 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .strategy-tag { display:inline-flex; align-items:center; gap:5px; background:#fff8f0; border:1px solid #f7931a33; border-radius:6px; padding:4px 10px; font-size:12px; color:#c85a00; margin-bottom:1rem; }
 
 .sec-label { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#aaa; margin-bottom:8px; }
+.seasoning-cal { max-width:1100px; margin:0 auto 16px; background:#fff; border:1px solid #eee; border-radius:12px; padding:14px 18px; }
+.seasoning-cal summary { cursor:pointer; font-weight:700; font-size:13px; color:#333; }
+.seasoning-note { font-size:12px; color:#888; margin:10px 0 14px; }
+.seasoning-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+.seasoning-item { background:#faf9f6; border-radius:8px; padding:10px 12px; font-size:12px; }
+.seasoning-item b { display:block; margin-bottom:4px; font-size:12.5px; }
+.seasoning-item span { color:#888; }
+.deliverable-note { background:#fff7ed; border:1px solid #fde4c8; border-radius:8px; padding:8px 12px; font-size:12px; color:#92531a; margin-bottom:14px; }
 
 .caption-block { margin-bottom:1.5rem; }
 .caption-label-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
@@ -139,7 +147,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 <div class="save-indicator" id="save-indicator">💾 Saved</div>
 <div class="container" id="main-container" style="display:none">
   <div class="header">
-    <h1>Bitcards — 30-Day Content Plan<span class="view-badge" id="role-badge" style="display:none"></span></h1>
+    <h1>Bitcards Content Plan<span class="view-badge" id="role-badge" style="display:none"></span></h1>
     <div class="tagline">"The bitcoin you can actually hand someone."</div>
     <p>Based on U.S. Market Entry Strategy · Q4 2026 Launch · Awareness → Trust → Social Proof → Conversion</p>
     <div class="journey-bar">
@@ -158,6 +166,24 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
   </div>
 
   <div id="week-header" class="week-header"></div>
+
+  <details class="seasoning-cal">
+    <summary>📅 Bitcards Seasoning Calendar — positive US occasions worth a post</summary>
+    <div class="seasoning-body">
+      <p class="seasoning-note">Not part of the 33-day sequence below — a reference list of dates worth slotting a post around once the real launch calendar is fixed. All chosen for a positive, product-relevant angle (Bitcoin, gifting, or money).</p>
+      <div class="seasoning-grid">
+        <div class="seasoning-item"><b>🍂 Fall Equinox</b><span>~Sept 22 — "give bitcoin while it's cooling down"</span></div>
+        <div class="seasoning-item"><b>🎃 Halloween / Bitcoin Whitepaper Day</b><span>Oct 31 — same date as the 2008 whitepaper. Rare overlap worth using.</span></div>
+        <div class="seasoning-item"><b>🦃 Thanksgiving</b><span>Late Nov — gratitude + gifting angle</span></div>
+        <div class="seasoning-item"><b>🛍️ Black Friday / Cyber Monday</b><span>Late Nov — real promo / bundle-offer angle</span></div>
+        <div class="seasoning-item"><b>🎄 Christmas / Holiday Season</b><span>December — the core of the Q4 launch window</span></div>
+        <div class="seasoning-item"><b>🎊 New Year's Day</b><span>Jan 1 — "New Year, self-custody your bitcoin"</span></div>
+        <div class="seasoning-item"><b>💝 Valentine's Day</b><span>Feb 14 — gifting angle</span></div>
+        <div class="seasoning-item"><b>🎓 Graduation Season</b><span>May–June — milestone-gifting angle</span></div>
+      </div>
+    </div>
+  </details>
+
   <div id="day-grid" class="day-grid"></div>
   <div id="detail-panel"></div>
 </div>
@@ -215,18 +241,18 @@ const plan = {
         visual:{ bg:"Split card visual: orange gift card left / dark crypto portfolio screen right on navy blue bg", type:"'Looks like a gift card' left in white + orange / 'Feels like a portfolio' right in white + blue", props:"Bitcards mockup split down center with light beam divider, BTC price chart on right half", mood:"Bold editorial — Bloomberg meets DTC gifting brand" }
       },
       {
-        id:3, persona:"HODLer / Gift Giver", type:"Unboxing — ASMR",
-        title:"The sound of financial freedom.", format:"ASMR Reel (no voiceover)",
-        strategy:"Premium brand signal. No hard sell — let the product speak. Trigger curiosity loop.",
-        en:"The sound of financial freedom.\n\n🔇 Watch with sound on.\n\n#Bitcards #ASMR #BitcoinGift #UnboxCrypto",
-        visual:{ bg:"Matte black Bitcard emerging from white crinkled tissue paper, overhead studio light", type:"Minimal — Bitcards logo bottom right only, no text overlay", props:"Card sliding out of tissue paper, gold BTC logo catching light as it's revealed", mood:"Apple product reveal + luxury DTC unboxing energy, silent confidence" }
+        id:3, persona:"All Segments", type:"Explainer — What Is This",
+        title:"What Bitcards actually is.", format:"Static / Carousel",
+        strategy:"Week 1 education pass — plain-language explainer before persona-specific hooks continue. Answers 'what is this' directly, plus current + potential uses.",
+        en:"Let's make this simple.\n\nBitcards is a physical card that turns into a real Bitcoin wallet — but only once you make it one.\n\nHere's exactly how:\n1️⃣ Scan the QR code on the card\n2️⃣ Your phone generates the second half of a key — offline, on your device\n3️⃣ Write down 12 words, send your own bitcoin to the new address\n4️⃣ Hand it over. They scan the same QR, sweep the bitcoin into their own wallet\n\nWhat can it do today? Give real bitcoin as a gift — no crypto app required for the person receiving it.\n\nWhat could it become? A first step into self-custody for someone who's never held their own keys before.\n\n#Bitcards #Bitcoin #WhatIsThis #SelfCustody",
+        visual:{ bg:"Clean 4-panel step-by-step layout on Bitcards paper-cream background (#F4F1E9)", type:"Numbered steps 1-4 in bold Archivo, each panel with a short label", props:"Card, phone silhouette, QR code icon, BTC coin icon — simple flat icon style, no photography needed", mood:"Clear instructional graphic — Apple support-page simplicity, zero mystery, all clarity" }
       },
       {
-        id:4, persona:"Bitcoin Maxi / Cypherpunk", type:"Texture — Premium Signal",
-        title:"Hold Real Value.", format:"Macro zoom Reel",
-        strategy:"USP3 — No electronics. Speak to the Maxi audience: physicality, permanence, no chip dependency.",
-        en:"No chip. No NFC. No firmware that can fail.\n\nJust a printed card and math.\n\nThe key doesn't exist until you make it.\nThe bitcoin is yours — not held by anyone.\n\nHold Real Value. ✋\n\n#Bitcards #Bitcoin #SelfCustody #NotYourKeys",
-        visual:{ bg:"Extreme macro on Bitcard surface — amber warm light, dark leather background, 'Hold Real Value' embossed text", type:"Embossed serif: 'Hold Real Value' — debossed shadow detail visible, fingerprint element bottom right", props:"BTC symbol catching amber light, fingerprint motif suggesting ownership and identity", mood:"Rolex watch campaign energy — product as philosophy, not just object" }
+        id:4, persona:"All Segments", type:"Education — Safety & Storage",
+        title:"Where do your 12 words actually go?", format:"Static infographic",
+        strategy:"Week 1 education pass — addresses the #1 practical fear (loss/theft) before it's raised, using safety/storage framing requested for Week 1.",
+        en:"The question everyone asks eventually: what if I lose the card?\n\nHere's what actually protects your bitcoin:\n\n🔑 Your 12 words are the real key — write them somewhere safe, separate from the card itself\n🃏 The card alone can't move any bitcoin. Neither can the words alone. You need both.\n🧠 No app to get hacked. No account to get phished. No company holding a copy of your key.\n\nStorage 101: treat those 12 words like a spare house key — not a password you type into a website.\n\n#Bitcards #Bitcoin #SelfCustody #SafetyFirst",
+        visual:{ bg:"Split infographic: card on left, blurred 12-word list mockup on right, dark graphite (#1C1C1E) background", type:"Bold safety-icon headers per tip — lock icon, shield icon, no-account icon, in IBM Plex Mono labels", props:"Card + notebook/paper for writing down words — no digital device shown, reinforces offline storage", mood:"Security-brand educational tone — reassuring, not scary, like a 1Password explainer" }
       },
       {
         id:5, persona:"Thoughtful Giver (Sarah)", type:"Lifestyle — Emotional",
@@ -243,11 +269,11 @@ const plan = {
         visual:{ bg:"Dark charcoal (#1C1C1E brand color), neon gold accent line", type:"Large serif '10,000 BTC' stat dominant, sub-text in IBM Plex Mono", props:"Pizza icon → arrow → BTC coin → arrow → 'Your story' progression", mood:"Wired Magazine editorial meets Bitcoin lore — high contrast, culturally aware" }
       },
       {
-        id:7, persona:"All Segments", type:"Engagement — Community",
-        title:"Which would you rather receive?", format:"Poll / Question sticker",
-        strategy:"Channel: Nostr/X/Instagram community seeding. Build engagement before launch — strategy Phase 0.",
-        en:"Honest question —\n\nIf someone gave you a gift card this birthday, which would you actually want?\n\n🎁 Amazon gift card\n☕ Starbucks gift card\n₿ Bitcard (blank card, you load real bitcoin)\n🤔 Surprise me\n\nComment below. We're actually curious.\n\n#Bitcards #Poll #Bitcoin #GiftIdeas",
-        visual:{ bg:"White clean background, 4 large option tiles in 2x2 grid", type:"Question in 28px bold top, each option in large emoji + text", props:"Each tile shows the gift item — Amazon box, coffee cup, Bitcard, mystery gift box", mood:"Native platform poll aesthetic — feels like organic community content" }
+        id:7, persona:"All Segments", type:"Video — Simplicity Demo",
+        title:"Setting it up takes less time than making coffee.", format:"AI-generated video (no voiceover — BG music + on-screen text only)",
+        strategy:"Week 1 video day, requested by reviewer to show real usage and wallet simplicity. Production note: AI-generated footage, no spoken voiceover — communicate steps via on-screen text synced to background music, not narration.",
+        en:"Watch how fast this actually is. ⏱️\n\nNo app to download. No account to create. Just these steps:\n\n📱 Scan → ✍️ Write 12 words → 💸 Send bitcoin → 🎁 Hand it over\n\nThat's the whole setup.\n\n#Bitcards #Bitcoin #HowItWorks #SelfCustody",
+        visual:{ bg:"AI-generated sequence: hands holding phone, scanning card QR, card on a clean neutral table, well-lit", type:"On-screen text captions per step (no spoken voiceover) — bold white sans-serif, bottom-third placement, synced to background music beat", props:"Bitcard, smartphone, simple neutral desk setting", mood:"Quick, satisfying process video — upbeat but simple background music only, no dialogue" }
       }
     ]
   },
@@ -358,6 +384,27 @@ const plan = {
         strategy:"USP3: No electronics = no failure points. Demonstrate durability that a chip-based product can't claim.",
         en:"No chip. No electronics. Nothing to fail.\n\nSo we put the card through everything.\n\n💦 Submerged in water — QR still scanned.\n🔥 Left in a 140°F car — card survived.\n👖 Sat on it in a wallet for two weeks — still redeemable.\n\nThe key isn't on the card.\nThe key doesn't exist until you make it.\n\nYour crypto is tougher than you think. 💪\n\n#Bitcards #StressTest #Bitcoin #NoElectronics",
         visual:{ bg:"Raw concrete / real surface — no styling, authentic", type:"Each test name in caps + result in green check at bottom", props:"Card in each scenario: water bowl, dashboard gauge in sun, back pocket wallet", mood:"MythBusters energy meets DTC product confidence — no cuts, no tricks" }
+      },
+      {
+        id:31, persona:"HODLer / Gift Giver", type:"Unboxing — ASMR",
+        title:"The sound of financial freedom.", format:"ASMR Reel (no voiceover)",
+        strategy:"Relocated from original Day 3 during Week 1 rework — premium brand signal, no hard sell, let the product speak.",
+        en:"The sound of financial freedom.\n\n🔇 Watch with sound on.\n\n#Bitcards #ASMR #BitcoinGift #UnboxCrypto",
+        visual:{ bg:"Matte black Bitcard emerging from white crinkled tissue paper, overhead studio light", type:"Minimal — Bitcards logo bottom right only, no text overlay", props:"Card sliding out of tissue paper, gold BTC logo catching light as it's revealed", mood:"Apple product reveal + luxury DTC unboxing energy, silent confidence" }
+      },
+      {
+        id:32, persona:"Bitcoin Maxi / Cypherpunk", type:"Texture — Premium Signal",
+        title:"Hold Real Value.", format:"Macro zoom Reel",
+        strategy:"Relocated from original Day 4 during Week 1 rework — USP3, no electronics, speaks to the Maxi audience's love of physicality and permanence.",
+        en:"No chip. No NFC. No firmware that can fail.\n\nJust a printed card and math.\n\nThe key doesn't exist until you make it.\nThe bitcoin is yours — not held by anyone.\n\nHold Real Value. ✋\n\n#Bitcards #Bitcoin #SelfCustody #NotYourKeys",
+        visual:{ bg:"Extreme macro on Bitcard surface — amber warm light, dark leather background, 'Hold Real Value' embossed text", type:"Embossed serif: 'Hold Real Value' — debossed shadow detail visible, fingerprint element bottom right", props:"BTC symbol catching amber light, fingerprint motif suggesting ownership and identity", mood:"Rolex watch campaign energy — product as philosophy, not just object" }
+      },
+      {
+        id:33, persona:"All Segments", type:"Engagement — Community",
+        title:"Which would you rather receive?", format:"Poll / Question sticker",
+        strategy:"Relocated from original Day 7 during Week 1 rework — Nostr/X/Instagram community seeding, engagement before launch.",
+        en:"Honest question —\n\nIf someone gave you a gift card this birthday, which would you actually want?\n\n🎁 Amazon gift card\n☕ Starbucks gift card\n₿ Bitcard (blank card, you load real bitcoin)\n🤔 Surprise me\n\nComment below. We're actually curious.\n\n#Bitcards #Poll #Bitcoin #GiftIdeas",
+        visual:{ bg:"White clean background, 4 large option tiles in 2x2 grid", type:"Question in 28px bold top, each option in large emoji + text", props:"Each tile shows the gift item — Amazon box, coffee cup, Bitcard, mystery gift box", mood:"Native platform poll aesthetic — feels like organic community content" }
       }
     ]
   },
@@ -764,6 +811,7 @@ function render(){
         ${renderCaptionBlock(d)}
         <div class="visual-brief">
           <div class="sec-label">Visual Brief for Graphic Designer</div>
+          <div class="deliverable-note">📱 Platforms: Facebook · Instagram · TikTok (1 asset/day, reused across all 3) &nbsp;|&nbsp; 📐 Required sizes: 1080×1080 (Square) + 1080×1920 (9:16)</div>
           <div class="brief-grid">
             <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
             <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
