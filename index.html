@@ -201,18 +201,11 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
     <button class="pill-filter" onclick="setFilter('fbig')">📘📷 Facebook/Instagram</button>
     <button class="pill-filter" onclick="setFilter('ttyt')">🎵▶️ TikTok/YouTube Shorts</button>
     <button class="pill-filter" onclick="setFilter('email')">📧 Email</button>
+    <button class="pill-filter" onclick="setFilter('occasions')">🎉 Occasions</button>
   </div>
 
   <div id="week-header" class="week-header"></div>
   <div class="filter-count" id="filter-count"></div>
-
-  <details class="seasoning-cal">
-    <summary>📅 Bitcards Seasoning Calendar — positive US occasions worth a post</summary>
-    <div class="seasoning-body">
-      <p class="seasoning-note">Not part of the 60-day sequence below — click any card for its full caption and visual brief, same as Day 1-60. Dates are approximate until the real launch calendar is fixed.</p>
-      <div class="seasoning-grid" id="seasoning-grid"></div>
-    </div>
-  </details>
 
   <div id="day-grid" class="day-grid"></div>
   <div id="detail-panel"></div>
@@ -1084,6 +1077,18 @@ function isVideoUrl(url){
   return url.includes('/video/upload/') || /\.(mp4|mov|webm|m4v)($|\?)/i.test(url);
 }
 
+// Single top-of-card preview: prefer a video if one exists among the uploaded media, else the first image.
+function bestPreviewHtml(dayId, title){
+  const items = imgStore[dayId]||[];
+  if(!items.length) return `<div class="card-preview"><span class="no-media-icon">🖼️</span></div>`;
+  const vid = items.find(isVideoUrl);
+  const src = vid || items[0];
+  const inner = isVideoUrl(src)
+    ? `<video src="${src}" muted playsinline></video>`
+    : `<img src="${src}" alt="${title}">`;
+  return `<div class="card-preview">${inner}${items.length>1?`<span class="preview-count">+${items.length-1}</span>`:''}</div>`;
+}
+
 function downloadUrlFor(url){
   // Force a real download (not inline playback/preview) via Cloudinary's fl_attachment flag.
   // Falls back to the original URL for embedded base64 defaults, which download fine as-is.
@@ -1096,7 +1101,6 @@ function renderImgSection(dayId){
   const canEdit = currentRole === 'edit';
   return `
     <div class="img-section">
-      <div class="sec-label">Visual References / Actual Assets</div>
       <div class="img-grid">
         ${imgs.map((src,i)=>{
           const isVid = isVideoUrl(src);
@@ -1121,26 +1125,57 @@ function renderImgSection(dayId){
     </div>`;
 }
 
-function renderSeasoningGrid(){
-  const grid = document.getElementById('seasoning-grid');
-  if(!grid) return;
-  grid.innerHTML = seasoningPlan.map(s=>{
-    const edited = isEdited(s.id, s.en), nimgs=(imgStore[s.id]||[]).length;
-    return `
-      <div class="seasoning-item ${selectedId===s.id?'active':''}" onclick="selectDay(${s.id})">
-        <span class="mini-pill" style="background:#2d5bff">${s.when}</span>
-        <b>${s.title}</b>
-        <span>${s.type}</span>
-        <div class="badge-row">
-          ${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}
-          ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
+// Unified card renderer — used for both the main 60-day grid and the Occasions tab,
+// so structure, collapsibles, and upload/caption behavior stay identical everywhere.
+function dayCardHtml(d, isOccasion){
+  const edited=isEdited(d.id,d.en), nimgs=(imgStore[d.id]||[]).length;
+  const plats = platformsFor(d);
+  const phase = isOccasion ? null : phaseFor(d);
+  const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e'};
+  const topBadge = isOccasion
+    ? `<span class="mini-pill" style="background:#2d5bff">📅 ${d.when}</span>`
+    : `<span class="mini-pill" style="background:${phaseColors[phase]||'#999'}">${phaseLabels[phase]}</span>`;
+  return `
+    <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
+      ${bestPreviewHtml(d.id, d.title)}
+      <div class="day-num">DAY ${String(d.id).padStart(2,'0')}</div>
+      <div class="pill-row">
+        ${topBadge}
+        ${plats.map(p=>`<span class="mini-pill plat">${platformLabels[p].split(' ')[0]}</span>`).join('')}
+      </div>
+      <div class="day-persona">${d.persona}</div>
+      <div class="day-type">${d.type}</div>
+      <div class="day-title">${d.title}</div>
+      <span class="format-pill">${d.format}</span>
+      <div class="badge-row">
+        ${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}
+        ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
+      </div>
+      <details class="collapsible-section" onclick="event.stopPropagation()">
+        <summary>▼ Caption</summary>
+        ${renderCaptionBlock(d)}
+      </details>
+      <details class="collapsible-section" onclick="event.stopPropagation()">
+        <summary>▼ Visual Brief + All Hashtags</summary>
+        <div class="visual-brief">
+          <div class="deliverable-note">📱 ${plats.map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 1080×1080 + 1080×1920</div>
+          <div class="brief-grid">
+            <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
+            <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
+            <div class="brief-item"><div class="brief-key">Props / Subjects</div><div class="brief-val">${d.visual.props}</div></div>
+            <div class="brief-item"><div class="brief-key">Mood / Reference</div><div class="brief-val">${d.visual.mood}</div></div>
+          </div>
+          <div class="hashtags">#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC</div>
         </div>
-      </div>`;
-  }).join('');
+      </details>
+      <details class="collapsible-section" onclick="event.stopPropagation()">
+        <summary>▼ Visual References / Actual Assets</summary>
+        ${renderImgSection(d.id)}
+      </details>
+    </div>`;
 }
 
 function render(){
-  renderSeasoningGrid();
   const editedCount = allDays.filter(d=>isEdited(d.id,d.en)).length;
   const withMediaCount = allDays.filter(d=>(imgStore[d.id]||[]).length>0).length;
   const videoCount = allDays.filter(d=>isVideoFormat(d.format)).length;
@@ -1168,54 +1203,23 @@ function render(){
     return;
   }
 
-  const filtered = allDays.filter(d => matchesFilter(d) && matchesSearch(d));
-  const filterName = currentFilter==='all' ? 'All Posts' : (phaseLabels[currentFilter] || platformLabels[currentFilter]);
-  document.getElementById('week-header').innerHTML=`
-    <div class="week-label">${filterName}</div>
-    <div class="week-theme">${filtered.length} of ${allDays.length} posts</div>
-    <div class="week-goal">${currentFilter==='ttyt' ? 'Video days only — static-image days skip this channel.' : ''}</div>`;
-  document.getElementById('filter-count').textContent = filtered.length + '/' + allDays.length + ' posts';
-
-  document.getElementById('day-grid').innerHTML=filtered.map(d=>{
-    const edited=isEdited(d.id,d.en), nimgs=(imgStore[d.id]||[]).length;
-    const phase = phaseFor(d);
-    const plats = platformsFor(d);
-    const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e'};
-    return `
-      <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
-        <div onclick="event.stopPropagation()">${renderImgSection(d.id)}</div>
-        <div class="day-num">DAY ${String(d.id).padStart(2,'0')}</div>
-        <div class="pill-row">
-          <span class="mini-pill" style="background:${phaseColors[phase]||'#999'}">${phaseLabels[phase]}</span>
-          ${plats.map(p=>`<span class="mini-pill plat">${platformLabels[p].split(' ')[0]}</span>`).join('')}
-        </div>
-        <div class="day-persona">${d.persona}</div>
-        <div class="day-type">${d.type}</div>
-        <div class="day-title">${d.title}</div>
-        <span class="format-pill">${d.format}</span>
-        <div class="badge-row">
-          ${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}
-          ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
-        </div>
-        <details class="collapsible-section" onclick="event.stopPropagation()">
-          <summary>▼ Caption</summary>
-          ${renderCaptionBlock(d)}
-        </details>
-        <details class="collapsible-section" onclick="event.stopPropagation()">
-          <summary>▼ Visual Brief + All Hashtags</summary>
-          <div class="visual-brief">
-            <div class="deliverable-note">📱 ${plats.map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 1080×1080 + 1080×1920</div>
-            <div class="brief-grid">
-              <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
-              <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
-              <div class="brief-item"><div class="brief-key">Props / Subjects</div><div class="brief-val">${d.visual.props}</div></div>
-              <div class="brief-item"><div class="brief-key">Mood / Reference</div><div class="brief-val">${d.visual.mood}</div></div>
-            </div>
-            <div class="hashtags">#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC</div>
-          </div>
-        </details>
-      </div>`;
-  }).join('');
+  if(currentFilter === 'occasions'){
+    document.getElementById('week-header').innerHTML=`
+      <div class="week-label">🎉 Occasions</div>
+      <div class="week-theme">${seasoningPlan.length} seasonal posts</div>
+      <div class="week-goal">Not part of the core 60-day sequence — click any card for its full caption and visual brief, same as Day 1-60. Each shows the fixed date it needs to go live.</div>`;
+    document.getElementById('filter-count').textContent = seasoningPlan.length + ' occasions';
+    document.getElementById('day-grid').innerHTML = seasoningPlan.map(s=>dayCardHtml(s,true)).join('');
+  } else {
+    const filtered = allDays.filter(d => matchesFilter(d) && matchesSearch(d));
+    const filterName = currentFilter==='all' ? 'All Posts' : (phaseLabels[currentFilter] || platformLabels[currentFilter]);
+    document.getElementById('week-header').innerHTML=`
+      <div class="week-label">${filterName}</div>
+      <div class="week-theme">${filtered.length} of ${allDays.length} posts</div>
+      <div class="week-goal">${currentFilter==='ttyt' ? 'Video days only — static-image days skip this channel.' : ''}</div>`;
+    document.getElementById('filter-count').textContent = filtered.length + '/' + allDays.length + ' posts';
+    document.getElementById('day-grid').innerHTML = filtered.map(d=>dayCardHtml(d,false)).join('');
+  }
 
   if(selectedId){
     const d=allDays.find(x=>x.id===selectedId) || seasoningPlan.find(x=>x.id===selectedId);
