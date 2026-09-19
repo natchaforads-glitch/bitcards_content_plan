@@ -25,9 +25,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .stat-block span { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#999; }
 
 /* ── Sticky filter bar ──────────────────────────────────────────────────────── */
-.filter-bar { position:sticky; top:49px; z-index:40; background:#fff; border-bottom:1px solid #eee; margin:0 -1.5rem 0; padding:14px 24px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-.filter-bar-row2 { position:static; border-bottom:1px solid #eee; padding-top:10px; padding-bottom:14px; }
-.filter-bar-row2:last-of-type { margin-bottom:1.5rem; }
+.filter-bar { position:sticky; top:49px; z-index:40; background:#fff; border-bottom:1px solid #eee; margin:0 -1.5rem 1.5rem; padding:14px 24px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .search-box { flex:1 1 220px; max-width:280px; padding:8px 12px; border:1.5px solid #e5e5e1; border-radius:8px; font-size:13px; font-family:inherit; outline:none; }
 .search-box:focus { border-color:#F7931A; }
 .pill-filter { padding:6px 14px; border-radius:20px; border:1.5px solid #e5e5e1; background:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; color:#555; transition:all .15s; white-space:nowrap; }
@@ -194,14 +192,10 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
   <div class="filter-bar" id="filter-bar">
     <input type="text" class="search-box" id="search-box" placeholder="Search captions, hashtags, hooks…" oninput="setSearch(this.value)">
     <button class="pill-filter active" onclick="setFilter('all')">All</button>
-  </div>
-  <div class="filter-bar filter-bar-row2" id="filter-bar-platform">
     <button class="pill-filter" onclick="setFilter('fbig')">Facebook/Instagram</button>
     <button class="pill-filter" onclick="setFilter('ttyt')">TikTok/YouTube Shorts</button>
     <button class="pill-filter" onclick="setFilter('email')">Email</button>
     <button class="pill-filter" onclick="setFilter('occasions')">Occasions</button>
-  </div>
-  <div class="filter-bar filter-bar-row2" id="filter-bar-phase">
     <button class="pill-filter phase-awareness" onclick="setFilter('awareness')">Awareness</button>
     <button class="pill-filter phase-trust" onclick="setFilter('trust')">Education &amp; Trust</button>
     <button class="pill-filter phase-social" onclick="setFilter('social')">Social Proof</button>
