@@ -18,6 +18,8 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .topnav-right { display:flex; align-items:center; gap:10px; }
 .live-dot { width:7px; height:7px; border-radius:50%; background:#3ecf6e; display:inline-block; box-shadow:0 0 0 3px rgba(62,207,110,0.2); }
 .live-label { font-size:12px; color:#bbb; display:flex; align-items:center; gap:6px; }
+.add-post-btn { background:#F7931A; color:#1a1a1a; border:none; border-radius:6px; padding:7px 16px; font-size:13px; font-weight:800; cursor:pointer; }
+.add-post-btn:hover { background:#e0820f; }
 
 /* ── Stats dashboard strip ──────────────────────────────────────────────────── */
 .stats-bar { background:#262625; color:#fff; display:flex; margin:0 -1.5rem 0; padding:14px 24px; gap:34px; flex-wrap:wrap; }
@@ -74,8 +76,8 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .week-theme { font-size:19px; font-weight:700; margin-bottom:4px; }
 .week-goal { font-size:13px; color:#666; }
 
-.day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-bottom:1.5rem; align-items:start; }
-.day-card { background:white; border:1.5px solid #e5e5e1; border-radius:10px; padding:1rem; cursor:pointer; transition:all 0.15s; overflow:hidden; }
+.day-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin-bottom:1.5rem; align-items:start; }
+.day-card { background:white; border:1.5px solid #e5e5e1; border-radius:10px; padding:1rem; cursor:pointer; transition:all 0.15s; overflow:hidden; border-top-width:4px; }
 .day-card:hover { border-color:#aaa; transform:translateY(-1px); }
 .day-card.active { border-color:#f7931a; background:#fff8f0; }
 .card-preview { width:calc(100% + 2rem); margin:-1rem -1rem 10px; aspect-ratio:9/16; max-height:280px; background:linear-gradient(135deg,#f0f0ee,#e5e5e1); overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; }
@@ -185,6 +187,9 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .gate-error { color:#e63946; font-size:12px; margin-top:8px; min-height:16px; }
 .view-badge { display:inline-block; font-size:11px; font-weight:600; background:#f0f0ee; color:#666; border-radius:20px; padding:3px 10px; margin-left:8px; }
 
+@media(max-width:1100px){
+  .day-grid { grid-template-columns:repeat(3, 1fr); }
+}
 @media(max-width:768px){
   .container { padding: 0 1rem 2rem; }
   .topnav { margin:0 -1rem; padding:10px 14px; }
@@ -196,7 +201,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
   .filter-bar { top:45px; margin:0 -1rem 1.25rem; padding:10px 14px; gap:6px; }
   .search-box { flex:1 1 100%; max-width:100%; }
   .pill-filter { font-size:11px; padding:5px 11px; }
-  .day-grid { grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
+  .day-grid { grid-template-columns:repeat(2, 1fr); }
   .seasoning-grid { grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); }
   .brief-grid { grid-template-columns:1fr; }
 }
@@ -250,6 +255,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
     <div class="topnav-right">
       <span class="live-label"><span class="live-dot"></span>LIVE</span>
       <span class="view-badge" id="role-badge" style="display:none"></span>
+      <button class="add-post-btn" id="add-post-btn" style="display:none" onclick="addNewPost()">+ Add Post</button>
     </div>
   </div>
 
@@ -304,6 +310,7 @@ const defaultImgs = {
 
 let captionEdits = {}; // populated from the server once the access gate succeeds
 let postMeta = {}; // per-day overrides: status, category/platform/format/hook, hashtags, visual, notes, isOccasion
+let customPosts = []; // ids of posts created entirely through "+ Add Post" (not part of the hardcoded plan)
 let imgStore     = Object.assign({}, defaultImgs);
 window.addEventListener('DOMContentLoaded', tryAutoUnlock);
 let selectedId   = null;
@@ -807,6 +814,49 @@ function effIsOccasion(d){ const m=metaFor(d.id); return m.isOccasion!==undefine
 function effCategory(d, isOccasion){ const m=metaFor(d.id); return m.category || (isOccasion?'occasion':phaseFor(d)); }
 function effPlatforms(d){ const m=metaFor(d.id); return (m.platforms && m.platforms.length) ? m.platforms : platformsFor(d); }
 
+// ── Custom posts (created via "+ Add Post", not part of the hardcoded plan) ─────
+function buildCustomDayObject(id){
+  const m = postMeta[id] || {};
+  return {
+    id,
+    persona: m.persona || 'All Segments',
+    type: m.hook || 'New Post',
+    title: m.title || '(untitled — click Edit to fill in)',
+    format: m.format || 'Static / Story',
+    strategy: m.strategy || 'Custom post added by the team through + Add Post.',
+    en: captionEdits[id] || '',
+    visual: m.visual || { bg:'', type:'', props:'', mood:'' }
+  };
+}
+function getAllRenderableDays(){
+  return [...allDays, ...customPosts.map(buildCustomDayObject)];
+}
+
+async function addNewPost(){
+  if(currentRole !== 'edit'){ showToast('⚠️ Edit password required for this','#e63946'); return; }
+  const usedIds = [...allDays.map(d=>d.id), ...seasoningPlan.map(d=>d.id), ...customPosts];
+  const newId = Math.max(0, ...usedIds) + 1;
+  const patch = {
+    isCustom: true, status:'draft', category:'awareness', platforms:['fbig'],
+    title:'New post — click Edit to fill in', persona:'All Segments', hook:'New Hook',
+    format:'Static / Story', hashtags: DEFAULT_HASHTAGS,
+    visual: { bg:'', type:'', props:'', mood:'' }
+  };
+  try{
+    const res = await editFetch({ dayId:newId, patch }, '/api/postmeta');
+    if(!res.ok) throw new Error('create failed');
+    postMeta[newId] = patch;
+    customPosts.push(newId);
+    showToast('✨ New post created — fill in the details');
+    render();
+    openEditModal(newId);
+  }catch(e){
+    console.error(e);
+    showToast('⚠️ Could not create post','#e63946');
+  }
+}
+
+
 // Static content runs on Facebook + Instagram only. Video content runs everywhere video lives —
 // Facebook, Instagram Reels, TikTok, and YouTube Shorts. Not every day posts to every platform.
 function isVideoFormat(format){ return /reel|video|talking head/i.test(format); }
@@ -900,8 +950,8 @@ function setSearch(v){ searchText=v.trim().toLowerCase(); selectedId=null; rende
 
 function matchesFilter(d){
   if(currentFilter==='all') return true;
-  if(phaseLabels[currentFilter]) return phaseFor(d)===currentFilter;
-  return platformsFor(d).includes(currentFilter);
+  if(phaseLabels[currentFilter]) return effCategory(d, effIsOccasion(d))===currentFilter;
+  return effPlatforms(d).includes(currentFilter);
 }
 function matchesSearch(d){
   if(!searchText) return true;
@@ -1038,6 +1088,7 @@ async function submitGate(){
       if(metaRes.ok){
         const metaData = await metaRes.json();
         postMeta = metaData.meta || {};
+        customPosts = Object.keys(postMeta).filter(k=>postMeta[k].isCustom===true).map(k=>parseInt(k,10));
       }
     }catch(e){ console.error('Could not load shared post metadata', e); }
 
@@ -1045,6 +1096,7 @@ async function submitGate(){
     const badge = document.getElementById('role-badge');
     if(currentRole === 'view'){ badge.style.display=''; badge.textContent='👁 View only'; }
     else { badge.style.display='none'; }
+    document.getElementById('add-post-btn').style.display = currentRole==='edit' ? '' : 'none';
     render();
   }catch(e){
     console.error(e);
@@ -1087,7 +1139,7 @@ async function editFetch(payload, endpoint){
 const CATEGORY_OPTIONS = ['awareness','trust','social','conversion','inform','brand','occasion'];
 const CATEGORY_DISPLAY = { awareness:'Awareness', trust:'Education & Trust', social:'Social Proof', conversion:'Conversion', inform:'Inform', brand:'Brand', occasion:'Occasion' };
 
-function findDay(id){ return allDays.find(x=>x.id===id) || seasoningPlan.find(x=>x.id===id); }
+function findDay(id){ return allDays.find(x=>x.id===id) || seasoningPlan.find(x=>x.id===id) || (customPosts.includes(id) ? buildCustomDayObject(id) : undefined); }
 
 function openEditModal(id){
   const d = findDay(id);
@@ -1377,8 +1429,9 @@ function dayCardHtml(d, isOccasion){
     : `<span class="mini-pill" style="background:${phaseColors[category]||'#999'}">${CATEGORY_DISPLAY[category]||category}</span>`;
   const hook = effHook(d);
   const format = effFormat(d);
+  const cardTopColor = (effIsOcc && isOccasion) ? '#2d5bff' : (phaseColors[category]||'#999');
   return `
-    <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
+    <div class="day-card ${selectedId===d.id?'active':''}" style="border-top-color:${cardTopColor}" onclick="selectDay(${d.id})">
       ${bestPreviewHtml(d.id, d.title)}
       <div class="pill-row">
         <span class="day-num-inline">${isOccasion ? 'CONTENT ' + String(d.id-60).padStart(2,'0') : 'DAY ' + String(d.id).padStart(2,'0')}</span>
@@ -1420,11 +1473,12 @@ function dayCardHtml(d, isOccasion){
 }
 
 function render(){
-  const editedCount = allDays.filter(d=>isEdited(d.id,d.en)).length;
-  const withMediaCount = allDays.filter(d=>(imgStore[d.id]||[]).length>0).length;
-  const videoCount = allDays.filter(d=>isVideoFormat(d.format)).length;
+  const renderableDays = getAllRenderableDays();
+  const editedCount = renderableDays.filter(d=>isEdited(d.id,d.en)).length;
+  const withMediaCount = renderableDays.filter(d=>(imgStore[d.id]||[]).length>0).length;
+  const videoCount = renderableDays.filter(d=>isVideoFormat(d.format)).length;
   document.getElementById('stats-bar').innerHTML=`
-    <div class="stat-block"><b>${allDays.length}</b><span>Total Posts</span></div>
+    <div class="stat-block"><b>${renderableDays.length}</b><span>Total Posts</span></div>
     <div class="stat-block"><b>${editedCount}</b><span>Edited</span></div>
     <div class="stat-block"><b>${withMediaCount}</b><span>With Media</span></div>
     <div class="stat-block"><b>${videoCount}</b><span>Video Days</span></div>
@@ -1457,13 +1511,13 @@ function render(){
     document.getElementById('filter-count').textContent = totalOcc + ' occasions';
     document.getElementById('day-grid').innerHTML = seasoningPlan.map(s=>dayCardHtml(s,true)).join('') + manuallyFlagged.map(d=>dayCardHtml(d,false)).join('');
   } else {
-    const filtered = allDays.filter(d => matchesFilter(d) && matchesSearch(d));
+    const filtered = renderableDays.filter(d => matchesFilter(d) && matchesSearch(d));
     const filterName = currentFilter==='all' ? 'All Posts' : (phaseLabels[currentFilter] || platformLabels[currentFilter]);
     document.getElementById('week-header').innerHTML=`
       <div class="week-label">${filterName}</div>
-      <div class="week-theme">${filtered.length} of ${allDays.length} posts</div>
+      <div class="week-theme">${filtered.length} of ${renderableDays.length} posts</div>
       <div class="week-goal">${currentFilter==='ttyt' ? 'Video days only — static-image days skip this channel.' : ''}</div>`;
-    document.getElementById('filter-count').textContent = filtered.length + '/' + allDays.length + ' posts';
+    document.getElementById('filter-count').textContent = filtered.length + '/' + renderableDays.length + ' posts';
     document.getElementById('day-grid').innerHTML = filtered.map(d=>dayCardHtml(d,false)).join('');
   }
 
