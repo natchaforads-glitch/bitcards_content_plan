@@ -47,7 +47,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .week-theme { font-size:19px; font-weight:700; margin-bottom:4px; }
 .week-goal { font-size:13px; color:#666; }
 
-.day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-bottom:1.5rem; }
+.day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-bottom:1.5rem; align-items:start; }
 .day-card { background:white; border:1.5px solid #e5e5e1; border-radius:10px; padding:1rem; cursor:pointer; transition:all 0.15s; overflow:hidden; }
 .day-card:hover { border-color:#aaa; transform:translateY(-1px); }
 .day-card.active { border-color:#f7931a; background:#fff8f0; }
@@ -1209,6 +1209,19 @@ function render(){
           ${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}
           ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
         </div>
+        <details class="collapsible-section" onclick="event.stopPropagation()">
+          <summary>▼ Visual Brief + All Hashtags</summary>
+          <div class="visual-brief">
+            <div class="deliverable-note">📱 ${plats.map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 1080×1080 + 1080×1920</div>
+            <div class="brief-grid">
+              <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
+              <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
+              <div class="brief-item"><div class="brief-key">Props / Subjects</div><div class="brief-val">${d.visual.props}</div></div>
+              <div class="brief-item"><div class="brief-key">Mood / Reference</div><div class="brief-val">${d.visual.mood}</div></div>
+            </div>
+            <div class="hashtags">#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC</div>
+          </div>
+        </details>
       </div>`;
   }).join('');
 
