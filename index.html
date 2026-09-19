@@ -199,8 +199,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
     <button class="pill-filter phase-inform" onclick="setFilter('inform')">Inform</button>
     <button class="pill-filter phase-brand" onclick="setFilter('brand')">Brand</button>
     <button class="pill-filter" onclick="setFilter('fbig')">📘📷 Facebook/Instagram</button>
-    <button class="pill-filter" onclick="setFilter('tiktok')">🎵 TikTok</button>
-    <button class="pill-filter" onclick="setFilter('youtube')">▶️ YouTube</button>
+    <button class="pill-filter" onclick="setFilter('ttyt')">🎵▶️ TikTok/YouTube Shorts</button>
     <button class="pill-filter" onclick="setFilter('email')">📧 Email</button>
   </div>
 
@@ -728,7 +727,7 @@ function isEdited(id,orig){ return captionEdits[id]!==undefined && captionEdits[
 
 // Same 60-day sequence is posted to every platform, so flatten all weeks into one ordered list.
 const allDays = Object.keys(plan).sort((a,b)=>a-b).flatMap(k=>plan[k].days);
-const platformLabels = { fbig:'📘📷 Facebook/Instagram', tiktok:'🎵 TikTok', youtube:'▶️ YouTube Shorts', email:'📧 Email' };
+const platformLabels = { fbig:'📘📷 Facebook/Instagram', ttyt:'🎵▶️ TikTok/YouTube Shorts', email:'📧 Email' };
 const phaseLabels = { awareness:'Awareness', trust:'Education & Trust', social:'Social Proof', conversion:'Conversion', inform:'Inform', brand:'Brand' };
 // Maps each plan week number to its short phase key, for filtering + card badges.
 const weekPhase = { 1:'awareness', 2:'trust', 3:'social', 4:'conversion', 5:'inform', 6:'brand', 7:'inform', 8:'brand' };
@@ -737,7 +736,7 @@ function phaseFor(d){ for(const wk in plan){ if(plan[wk].days.some(x=>x.id===d.i
 // Static content runs on Facebook + Instagram only. Video content runs everywhere video lives —
 // Facebook, Instagram Reels, TikTok, and YouTube Shorts. Not every day posts to every platform.
 function isVideoFormat(format){ return /reel|video|talking head/i.test(format); }
-function platformsFor(d){ return isVideoFormat(d.format) ? ['fbig','tiktok','youtube'] : ['fbig']; }
+function platformsFor(d){ return isVideoFormat(d.format) ? ['fbig','ttyt'] : ['fbig']; }
 
 // ── Email subscriber plan ────────────────────────────────────────────────────
 // ── Seasoning Calendar: full content, separate from the 60-day sequence ─────────
@@ -1174,7 +1173,7 @@ function render(){
   document.getElementById('week-header').innerHTML=`
     <div class="week-label">${filterName}</div>
     <div class="week-theme">${filtered.length} of ${allDays.length} posts</div>
-    <div class="week-goal">${currentFilter==='tiktok'||currentFilter==='youtube' ? 'Video days only — static-image days skip this channel.' : ''}</div>`;
+    <div class="week-goal">${currentFilter==='ttyt' ? 'Video days only — static-image days skip this channel.' : ''}</div>`;
   document.getElementById('filter-count').textContent = filtered.length + '/' + allDays.length + ' posts';
 
   document.getElementById('day-grid').innerHTML=filtered.map(d=>{
