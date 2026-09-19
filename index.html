@@ -116,7 +116,12 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .copy-btn:hover { background:#2d5bff; color:white; }
 .copy-btn.copied { background:#00a878; border-color:#00a878; color:white; }
 
-.visual-brief { padding-top:1.5rem; border-top:1px solid #f0f0ee; }
+.visual-brief { padding-top:1rem; }
+.collapsible-section { border-top:1px solid #f0f0ee; padding-top:.9rem; margin-top:.9rem; }
+.collapsible-section summary { cursor:pointer; font-size:12px; font-weight:700; color:#666; list-style:none; padding:2px 0; }
+.collapsible-section summary::-webkit-details-marker { display:none; }
+.collapsible-section summary:hover { color:#1a1a1a; }
+.collapsible-section[open] summary { color:#F7931A; margin-bottom:8px; }
 .brief-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
 .brief-item { background:#f8f8f6; border-radius:8px; padding:.75rem 1rem; }
 .brief-key { font-size:10px; font-weight:700; color:#aaa; margin-bottom:4px; text-transform:uppercase; letter-spacing:.06em; }
@@ -1218,17 +1223,22 @@ function render(){
         <div class="detail-concept">${d.concept||''}</div>
         <div class="strategy-tag">📋 Strategy: ${d.strategy}</div>
         ${renderCaptionBlock(d)}
-        <div class="visual-brief">
-          <div class="sec-label">Visual Brief for Graphic Designer</div>
-          <div class="deliverable-note">📱 Platforms: ${platformsFor(d).map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 Required sizes: 1080×1080 (Square) + 1080×1920 (9:16)</div>
-          <div class="brief-grid">
-            <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
-            <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
-            <div class="brief-item"><div class="brief-key">Props / Subjects</div><div class="brief-val">${d.visual.props}</div></div>
-            <div class="brief-item"><div class="brief-key">Mood / Reference</div><div class="brief-val">${d.visual.mood}</div></div>
+        <details class="collapsible-section">
+          <summary>▼ Visual Brief</summary>
+          <div class="visual-brief">
+            <div class="deliverable-note">📱 Platforms: ${platformsFor(d).map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 Required sizes: 1080×1080 (Square) + 1080×1920 (9:16)</div>
+            <div class="brief-grid">
+              <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
+              <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
+              <div class="brief-item"><div class="brief-key">Props / Subjects</div><div class="brief-val">${d.visual.props}</div></div>
+              <div class="brief-item"><div class="brief-key">Mood / Reference</div><div class="brief-val">${d.visual.mood}</div></div>
+            </div>
           </div>
-        </div>
-        <div class="hashtags">#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC</div>
+        </details>
+        <details class="collapsible-section">
+          <summary>▼ All Hashtags</summary>
+          <div class="hashtags">#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC</div>
+        </details>
         ${renderImgSection(d.id)}
       </div></div>`;
   } else {
