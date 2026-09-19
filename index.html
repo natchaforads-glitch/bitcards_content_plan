@@ -14,6 +14,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .header .tagline { font-size: 13px; color: #f7931a; font-weight: 500; margin-bottom: 0.3rem; }
 .header p { font-size: 13px; color: #888; }
 .journey-bar { display: flex; margin-top: 1.5rem; border-radius: 8px; overflow: hidden; font-size: 12px; font-weight: 600; }
+.platform-note { font-size:11px; color:#999; margin-top:8px; }
 .j1{flex:1;background:#2d5bff;padding:8px 10px;text-align:center;}
 .j2{flex:1;background:#00a878;padding:8px 10px;text-align:center;}
 .j3{flex:1;background:#f7931a;color:#1a1a1a;padding:8px 10px;text-align:center;}
@@ -149,20 +150,19 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
   <div class="header">
     <h1>Bitcards Content Plan<span class="view-badge" id="role-badge" style="display:none"></span></h1>
     <div class="tagline">"The bitcoin you can actually hand someone."</div>
-    <p>Based on U.S. Market Entry Strategy · Q4 2026 Launch · Awareness → Trust → Social Proof → Conversion</p>
+    <p>Based on U.S. Market Entry Strategy · Q4 2026 Launch · 60 posts · Awareness → Trust → Social Proof → Conversion → Inform → Brand</p>
     <div class="journey-bar">
-      <div class="j1">Week 1 · Awareness</div>
-      <div class="j2">Week 2 · Education & Trust</div>
-      <div class="j3">Week 3 · Social Proof</div>
-      <div class="j4">Week 4 · Conversion</div>
+      <div class="j1">📘 Facebook</div>
+      <div class="j2">📷 Instagram</div>
+      <div class="j3">🎵 TikTok</div>
     </div>
+    <p class="platform-note">Same 60-day content calendar — one asset produced per day, reused across all three channels. Tabs below are just a per-platform view; the sequence and captions are identical.</p>
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="setWeek(1)">Week 1 — Awareness</button>
-    <button class="tab-btn" onclick="setWeek(2)">Week 2 — Education & Trust</button>
-    <button class="tab-btn" onclick="setWeek(3)">Week 3 — Social Proof</button>
-    <button class="tab-btn" onclick="setWeek(4)">Week 4 — Conversion</button>
+    <button class="tab-btn active" onclick="setPlatform('facebook')">📘 Facebook</button>
+    <button class="tab-btn" onclick="setPlatform('instagram')">📷 Instagram</button>
+    <button class="tab-btn" onclick="setPlatform('tiktok')">🎵 TikTok</button>
   </div>
 
   <div id="week-header" class="week-header"></div>
@@ -216,7 +216,7 @@ const defaultImgs = {
 let captionEdits = {}; // populated from the server once the access gate succeeds
 let imgStore     = Object.assign({}, defaultImgs);
 window.addEventListener('DOMContentLoaded', tryAutoUnlock);
-let currentWeek  = 1;
+let currentPlatform = 'facebook';
 let selectedId   = null;
 let editingDay   = null;
 
@@ -476,6 +476,219 @@ const plan = {
         visual:{ bg:"Near-black background, single blurred Bitcard silhouette", type:"'COMING Q4' motion blur type, diagonal", props:"Frosted card shape, 5% reveal only — intrigue over information", mood:"iPhone launch reveal night — WWDC final slide energy, earned anticipation" }
       }
     ]
+  },
+  5: {
+    theme: "BITCOIN 101 — Building Real Understanding",
+    goal: "Inform pass: teach Bitcoin fundamentals to a broader, less crypto-native audience. Position Bitcards as the accessible on-ramp, not just a gift card.",
+    days: [
+      {
+        id:34, persona:"All Segments", type:"Education — Fundamentals",
+        title:"What does \"not your keys, not your coins\" actually mean?", format:"Static infographic",
+        strategy:"Inform pass. Explains the single most-repeated phrase in Bitcoin culture in plain language, then ties it back to Bitcards' architecture.",
+        en:"You'll hear this phrase everywhere in Bitcoin: \"not your keys, not your coins.\"\n\nHere's what it means: if a company holds your bitcoin on your behalf, you don't actually own it — you own a promise from that company.\n\nYour keys = the only thing that actually controls the bitcoin.\n\nA Bitcard puts those keys in your hands from day one. No promise. No company in between.\n\n#Bitcards #Bitcoin #SelfCustody #Bitcoin101",
+        visual:{ bg:"Split-panel: 'their promise' (grey, corporate icon) vs 'your keys' (orange, card + key icon)", type:"Bold contrast headline typography, Archivo display", props:"Simple icon set — no photography needed", mood:"Clear, slightly cheeky educational tone — like a good explainer tweet turned into a graphic" }
+      },
+      {
+        id:35, persona:"All Segments", type:"Education — Fundamentals",
+        title:"Why can there only ever be 21 million bitcoin?", format:"Static infographic",
+        strategy:"Inform pass. Broad Bitcoin-101 fact that builds category credibility and search/share value, independent of Bitcards specifically.",
+        en:"Unlike dollars, euros, or any other currency — nobody can print more bitcoin.\n\nThe total supply is fixed at 21 million, written into the code since 2009. No company, government, or central bank can change that number.\n\nAs of today, about 94% of all bitcoin that will ever exist has already been mined.\n\nScarcity isn't a marketing claim here. It's math.\n\n#Bitcards #Bitcoin #Bitcoin101 #21Million",
+        visual:{ bg:"Clean data-viz style — a filling bar/circle showing ~94% mined", type:"Large number '21,000,000' as the hero element, mono font", props:"Simple chart element, no photography", mood:"Financial-literacy-brand tone — think a well-designed banking app's education screen" }
+      },
+      {
+        id:36, persona:"All Segments", type:"Education — Comparison",
+        title:"Custodial vs. non-custodial, in 30 seconds.", format:"Static / Carousel",
+        strategy:"Inform pass. Direct educational comparison, framed generically (not just vs. named competitors) so it reads as genuinely helpful rather than an ad.",
+        en:"Two ways to hold bitcoin — know the difference before you choose either:\n\n🏦 Custodial: a company holds your bitcoin for you. Easier to start. But you're trusting them not to freeze it, lose it, or go under.\n\n🔑 Non-custodial: you hold your own keys. Nobody can freeze or take it. But you're responsible for keeping it safe.\n\nBitcards is built for the second path — with the training wheels of a physical card.\n\n#Bitcards #Bitcoin #SelfCustody #Bitcoin101",
+        visual:{ bg:"3-slide carousel — slide 1: question, slide 2: custodial explainer, slide 3: non-custodial explainer", type:"Icon-led headers per slide (bank icon vs key icon)", props:"None needed — icon and typography driven", mood:"Neutral, genuinely educational — avoid feeling like a sales pitch" }
+      },
+      {
+        id:37, persona:"All Segments", type:"Education — Fundamentals",
+        title:"What's a seed phrase, really?", format:"Static infographic",
+        strategy:"Inform pass. Demystifies the specific mechanic (12/24 words) that intimidates Bitcoin newcomers most.",
+        en:"12 or 24 random words. That's a seed phrase.\n\nIt sounds strange, but it's just a human-readable way to back up a private key — the actual thing that controls your bitcoin.\n\nAnyone who has those words can access the bitcoin. Nobody who doesn't have them can.\n\nOn a Bitcard, this is literally the 12 words you write down during setup. Same concept, no jargon required.\n\n#Bitcards #Bitcoin #SeedPhrase #Bitcoin101",
+        visual:{ bg:"12 numbered blank lines mockup (like a real seed phrase card), paper texture background", type:"Handwriting-style font for the 'words' (blurred/placeholder), clean labels", props:"Pen resting near the blank lines", mood:"Practical, tactile, demystifying — makes an abstract concept feel physical and manageable" }
+      },
+      {
+        id:38, persona:"All Segments", type:"Education — Positioning",
+        title:"Owning Bitcoin vs. owning a Bitcoin app.", format:"Static / Carousel",
+        strategy:"Inform pass. Distinguishes 'exposure to Bitcoin's price' from 'actually holding Bitcoin' — a distinction most casual holders never learn.",
+        en:"Most people who \"own Bitcoin\" actually own a number on an app's screen.\n\nThat's not wrong — it's a valid way to start. But it's worth knowing the difference:\n\n📱 An app shows you a balance. The company behind it controls the actual bitcoin.\n🔑 A wallet you control means the bitcoin moves only when you say so.\n\nA Bitcard is designed to make that second option approachable for someone's first time.\n\n#Bitcards #Bitcoin #SelfCustody #Bitcoin101",
+        visual:{ bg:"Phone screen mockup (app balance) next to a Bitcard, side by side comparison", type:"Simple 'vs' divider treatment", props:"Generic phone mockup, no real app logos used", mood:"Calm, clarifying — not anti-app, just informative about the distinction" }
+      },
+      {
+        id:39, persona:"Bitcoin Maxi / HODLer", type:"Education — Slightly Technical",
+        title:"How a Bitcoin address is actually created.", format:"Static infographic",
+        strategy:"Inform pass aimed at the more technical HODLer/Maxi segment — a legitimate, accurate simplification of key derivation, reinforcing Bitcards' credibility with this audience.",
+        en:"Ever wonder what's actually happening when a Bitcoin address gets created?\n\nSimplified: a private key (a very large random number) runs through one-way math to produce a public key, which then produces the address you share.\n\nOne-way means: you can go from private key → address, but never backward from address → private key.\n\nOn a Bitcard, that private key is built from two halves — one sealed on the card, one your phone generates — combined only when you choose to make the address real.\n\n#Bitcards #Bitcoin #secp256k1 #Bitcoin101",
+        visual:{ bg:"Simple one-way arrow diagram: Private Key → Public Key → Address, dark background, mono font", type:"IBM Plex Mono throughout for technical credibility", props:"None — pure diagram", mood:"Technical but readable — aimed at a HODLer who wants accuracy, not oversimplification" }
+      },
+      {
+        id:40, persona:"All Segments", type:"Education — Myth-busting",
+        title:"Common Bitcoin myths, busted.", format:"Static / Carousel",
+        strategy:"Inform pass. Round 2 myth-busting (different myths from the Week 2 myth-busting day), broad awareness/credibility content.",
+        en:"Let's clear a few things up:\n\n❌ \"Bitcoin is anonymous.\" Actually, every transaction is public and traceable — it's pseudonymous, not anonymous.\n\n❌ \"You need to buy a whole bitcoin.\" You can buy or send any fraction — down to 0.00000001 BTC.\n\n❌ \"Bitcoin transactions can be reversed if something goes wrong.\" They can't. That's a feature for security, but it means double-checking addresses matters.\n\nKnow the real rules before you play. 📚\n\n#Bitcards #Bitcoin #Bitcoin101 #MythBusting",
+        visual:{ bg:"3-panel carousel, red X icon transitioning to green checkmark per myth", type:"Bold strike-through on the myth, clean correction below", props:"None needed", mood:"Snappy, confident, slightly cheeky educational tone" }
+      }
+    ]
+  },
+  6: {
+    theme: "BRAND STORY — Why We Built This",
+    goal: "Branding pass: give the company a face, a philosophy, and values — build trust through transparency rather than another sales pitch.",
+    days: [
+      {
+        id:41, persona:"All Segments", type:"Brand — Mission",
+        title:"Why Bitcards exists.", format:"Static / Story",
+        strategy:"Branding pass. States the founding insight/mission directly — distinct from the personal founder-nephew anecdote used earlier in the plan.",
+        en:"Every other bitcoin gift product asks you to trust something: an account, an app, a company's servers.\n\nWe kept asking: what if none of that was necessary?\n\nA card that's genuinely empty until you make it real. Math instead of a middleman. That's the whole idea behind Bitcards — not a slogan, an actual design constraint we held ourselves to.\n\n#Bitcards #Bitcoin #WhyWeBuiltThis #SelfCustody",
+        visual:{ bg:"Founder-style handwritten note aesthetic on Bitcards paper-cream background", type:"Personal, slightly informal serif typography — feels written, not designed by committee", props:"None needed — text-led", mood:"Authentic, slightly vulnerable brand-voice piece — not corporate" }
+      },
+      {
+        id:42, persona:"Bitcoin Maxi / Cypherpunk", type:"Brand — Design Philosophy",
+        title:"Why we chose no electronics at all.", format:"Static / Carousel",
+        strategy:"Branding pass aimed at the technical audience — explains a real design trade-off (electronics vs printed card) as a value statement, not just a feature.",
+        en:"We could have put a chip in this. Plenty of good products do.\n\nWe didn't, on purpose:\n\n🔋 A chip can fail, degrade, or become obsolete. Paper and math don't.\n📡 A chip means an attack surface. Printed key halves don't broadcast anything.\n🔧 A chip means we control the firmware. We'd rather control nothing.\n\nSimplicity was the harder design choice. We think it was the right one.\n\n#Bitcards #Bitcoin #DesignPhilosophy #SelfCustody",
+        visual:{ bg:"Exploded-view style diagram of a Bitcard showing 'no chip, no battery, no firmware' labeled call-outs", type:"Technical schematic aesthetic, clean line-art style", props:"Card illustration only, no real photography needed", mood:"Engineering-brand confidence — like a product teardown video, but static" }
+      },
+      {
+        id:43, persona:"All Segments", type:"Brand — Behind the Scenes",
+        title:"The people behind the cards.", format:"Static / Team photo style",
+        strategy:"Branding pass. Humanizes the company — behind-the-scenes content builds trust for a new, unfamiliar brand.",
+        en:"Bitcards is a small team that believes self-custody shouldn't require a computer science degree.\n\nWe design every card, test every batch by hand, and read every piece of feedback that comes in — including the ones that sting a little.\n\nIf you've got a question we haven't answered yet, that's on us to fix. Tell us. 💬\n\n#Bitcards #Bitcoin #BehindTheScenes #SmallTeam",
+        visual:{ bg:"Simple workspace/desk flat-lay — cards, packaging materials, laptop, coffee cup, natural light", type:"Minimal text overlay, let the photo carry it", props:"Real production materials — card stock, packaging, quality-check checklist", mood:"Genuine small-business transparency, not staged corporate photography" }
+      },
+      {
+        id:44, persona:"Bitcoin Maxi / Cypherpunk", type:"Brand — Values Manifesto",
+        title:"Math over trust.", format:"Static / Quote card",
+        strategy:"Branding pass. A short manifesto-style statement aimed squarely at the cypherpunk/Maxi audience's core values.",
+        en:"Every financial system before this one asked you to trust an institution.\n\nBitcoin asks you to trust math instead.\n\nWe built Bitcards the same way — no company standing between the giver and the receiver, just a verifiable, checkable, provable split key.\n\nMath over trust. That's the whole company, really.\n\n#Bitcards #Bitcoin #Cypherpunk #SelfCustody",
+        visual:{ bg:"Bold single-statement quote card, graphite background (#1C1C1E), centered typography", type:"Large Archivo display type, orange accent on 'Math over trust'", props:"None — pure typographic statement", mood:"Manifesto energy — the kind of quote card that gets screenshotted and reposted" }
+      },
+      {
+        id:45, persona:"Bitcoin Maxi / Cypherpunk", type:"Brand — Transparency",
+        title:"Why we published our own recovery method.", format:"Static / Carousel",
+        strategy:"Branding pass. Turns the 'what if Bitcards disappears' resilience feature into a trust-building brand story about incentive alignment.",
+        en:"If Bitcards shut down tomorrow, every card we've ever sold would still work.\n\nWe published the exact recovery method — a plain Python script, no dependencies, plus the offline HTML app — publicly, for free, before we ever needed to.\n\nNot because we expect to disappear. Because a company that could quietly control your access to your own money shouldn't be trusted with it in the first place — including us.\n\n#Bitcards #Bitcoin #Transparency #SelfCustody",
+        visual:{ bg:"Code-editor style mockup showing the published recovery script, dark theme syntax highlighting", type:"Monospace throughout, GitHub-style interface framing", props:"Simple code snippet mockup, no real proprietary code shown", mood:"Developer-trust aesthetic — reads as genuinely open, not performatively so" }
+      },
+      {
+        id:46, persona:"Thoughtful Giver (Sarah)", type:"Brand — Craft Story",
+        title:"The design of a Bitcard.", format:"Static / Macro detail",
+        strategy:"Branding pass aimed at the less-technical gifting persona — focuses on tangible craft and design decisions rather than crypto mechanics.",
+        en:"Every detail on a Bitcard was a decision:\n\nThe weight of the card stock, so it feels substantial in hand.\nThe finish — Bitcoin Orange, White, or Black — so it looks intentional under a tree or on a desk.\nEven the seal placement, so opening it feels like an event, not a chore.\n\nIt's a gift card. It should feel like one.\n\n#Bitcards #Bitcoin #DesignDetails #GiftBitcoin",
+        visual:{ bg:"Macro shot of card corner/edge detail, showing card stock texture and finish quality", type:"Minimal, let the material speak — small caption only", props:"All three finishes shown if possible — Orange, White, Black", mood:"Premium stationery/DTC product photography energy, tactile focus" }
+      },
+      {
+        id:47, persona:"All Segments", type:"Brand — Philosophy",
+        title:"What \"self-custody\" means to us.", format:"Static / Story",
+        strategy:"Branding pass. Closing piece for the brand-story week — ties the philosophical thread together in accessible language for a broad audience.",
+        en:"Self-custody sounds technical. It isn't, really.\n\nIt means: the thing you own actually behaves like something you own — not something you're renting access to.\n\nThat idea used to only be available to people willing to learn a lot of new vocabulary first.\n\nWe wanted to make it available to anyone willing to write down 12 words.\n\n#Bitcards #Bitcoin #SelfCustody #WhyItMatters",
+        visual:{ bg:"Warm, human-scale photography style — hands holding a card, soft natural light", type:"Gentle serif pull-quote overlay", props:"Card + hands only, no crypto jargon visuals", mood:"Warm and human — the emotional close to the brand-story arc" }
+      }
+    ]
+  },
+  7: {
+    theme: "PRACTICAL EDUCATION — Using Bitcoin Day to Day",
+    goal: "Second inform pass: answer the practical 'how do I actually use this' questions that come after someone already understands the basics.",
+    days: [
+      {
+        id:48, persona:"All Segments", type:"Education — FAQ",
+        title:"Can you actually spend bitcoin like cash?", format:"Static infographic",
+        strategy:"Inform pass. Addresses a genuine practical question about day-to-day usability, framed honestly rather than oversold.",
+        en:"Short answer: yes, but it's more like a savings account than a debit card today.\n\nSome merchants accept it directly. More accept it through a payment processor that converts it. Sending to another wallet, anywhere in the world, always works — no bank required.\n\nMost people gifted a Bitcard treat it as something to hold, not spend immediately. That's a choice, not a limitation.\n\n#Bitcards #Bitcoin #Bitcoin101 #UsingBitcoin",
+        visual:{ bg:"Simple 3-icon flow: wallet → merchant / wallet → wallet, clean flat design", type:"Icon-led, minimal text", props:"None needed", mood:"Honest, informative — avoids overselling day-to-day spendability" }
+      },
+      {
+        id:49, persona:"Thoughtful Giver (Sarah)", type:"Education — Objection Handling",
+        title:"What if the price drops after I load a Bitcard?", format:"Static / Carousel",
+        strategy:"Inform pass addressing the most common hesitation from non-crypto-native gift-givers, framed with the volatility-normalizing tone used elsewhere in the plan.",
+        en:"Real question we get: \"what if bitcoin drops right after I give it as a gift?\"\n\nHere's the honest answer: it might. Bitcoin's price moves, sometimes a lot, in short windows.\n\nBut the person receiving it owns real bitcoin, not a dollar amount frozen in time. If they hold it, its value moves with the market — the same as it would if you'd bought and held it yourself.\n\nA gift of bitcoin is a gift of an asset, not a gift card balance.\n\n#Bitcards #Bitcoin #GiftBitcoin #Bitcoin101",
+        visual:{ bg:"Simple line-chart motif (generic, not real price data) fading into a card + gift bow", type:"Calm, reassuring typography — no urgency styling", props:"Abstract chart line only, not a real ticker", mood:"Reassuring, honest — objection-handling tone, not defensive" }
+      },
+      {
+        id:50, persona:"All Segments", type:"Education — Comparison",
+        title:"Bitcoin vs. a savings account: the honest comparison.", format:"Static / Carousel",
+        strategy:"Inform pass. A balanced, non-hyped comparison that builds credibility by acknowledging real trade-offs on both sides.",
+        en:"Not financial advice — just an honest side-by-side:\n\n🏦 Savings account: predictable, insured (in the US, up to certain limits), but loses purchasing power to inflation over time.\n\n₿ Bitcoin: no insurance, no guarantee, meaningfully more volatile — but a fixed supply nobody can inflate away.\n\nDifferent tools, different trade-offs. Most people who hold bitcoin treat it as one piece of a bigger picture, not a replacement for savings.\n\n#Bitcards #Bitcoin #Bitcoin101 #NotFinancialAdvice",
+        visual:{ bg:"Balanced two-column comparison table, neutral color treatment (no bias toward either side)", type:"Clean data-table typography", props:"None needed", mood:"Genuinely balanced financial-literacy tone — avoids feeling like a pitch" }
+      },
+      {
+        id:51, persona:"All Segments", type:"Education — FAQ",
+        title:"How long does a Bitcoin transaction actually take?", format:"Static infographic",
+        strategy:"Inform pass. Practical, searchable FAQ content with accurate general guidance.",
+        en:"Sending bitcoin usually confirms on the network within about 10-60 minutes, depending on network conditions and the fee paid.\n\nThat's slower than tapping a card at checkout — but faster than a bank wire, and it works the same on a weekend, a holiday, or across a border.\n\nFor a gift someone's going to hold rather than spend immediately, that timing rarely matters at all.\n\n#Bitcards #Bitcoin #Bitcoin101 #HowItWorks",
+        visual:{ bg:"Simple clock/timer motif with a transaction confirming animation-style graphic (static)", type:"Clear numeric callout '~10-60 min'", props:"None needed", mood:"Practical, matter-of-fact educational tone" }
+      },
+      {
+        id:52, persona:"Bitcoin Maxi / HODLer", type:"Education — Tool Recommendation",
+        title:"Which wallet should you actually use?", format:"Static / Carousel",
+        strategy:"Inform pass, aimed at HODLers setting up their own wallet to receive a Bitcard sweep. Recommends the same wallets already named in the product spec (Sparrow, Electrum) for consistency.",
+        en:"Once you sweep a Bitcard, where should the bitcoin actually live?\n\nFor most people getting serious about self-custody, two well-regarded options:\n\n🔧 Sparrow Wallet — desktop-focused, powerful, popular with more technical users\n⚡ Electrum — one of the oldest, most battle-tested Bitcoin wallets around\n\nBoth are standard BIP39 wallets — exactly what a Bitcard sweeps into.\n\n#Bitcards #Bitcoin #SelfCustody #WalletSetup",
+        visual:{ bg:"Simple two-column logo-style layout (generic wallet icons, not trademarked logos), clean background", type:"Icon + one-line description per wallet", props:"None needed", mood:"Practical, resource-guide tone — genuinely helpful, not just promotional" }
+      },
+      {
+        id:53, persona:"All Segments", type:"Education — FAQ",
+        title:"Wait, are there fees?", format:"Static infographic",
+        strategy:"Inform pass. Distinguishes Bitcards' own fee-free model from unavoidable Bitcoin network fees, an area of common confusion.",
+        en:"Two different things people mix up:\n\n💳 Bitcards fees: none. $15 a card, or 3 for $30. No transaction fees, no reload fees, ever.\n\n⛓️ Bitcoin network fees: a small fee, paid to the network (not to us), every time bitcoin moves on-chain — typically a few dollars or less, depending on network conditions.\n\nWe don't touch that fee, set it, or profit from it. That's just how Bitcoin itself works.\n\n#Bitcards #Bitcoin #Bitcoin101 #NoHiddenFees",
+        visual:{ bg:"Simple two-row comparison: 'Bitcards fees: $0' vs 'Network fee: paid to the network, not us'", type:"Clear, honest labeling — no small print styling", props:"None needed", mood:"Transparent, straightforward — building trust through clarity" }
+      },
+      {
+        id:54, persona:"Thoughtful Giver (Sarah)", type:"Education — Reassurance",
+        title:"Is it even legal to give bitcoin as a gift in the US?", format:"Static infographic",
+        strategy:"Inform pass. Directly answers a real hesitation from less crypto-native gift-givers with a clear, reassuring, accurate answer.",
+        en:"Yes — giving bitcoin as a gift is legal in the United States, the same as gifting cash, stock, or any other asset.\n\nLarge gifts may have tax reporting considerations depending on the amount, same as any other valuable gift — worth a quick check with a tax professional for bigger amounts, same as you'd do for anything else of real value.\n\nFor a typical Bitcard-sized gift, it's exactly as simple as it sounds: you're giving someone an asset you already own.\n\n#Bitcards #Bitcoin #GiftBitcoin #Bitcoin101",
+        visual:{ bg:"Reassuring, simple checkmark-style graphic, warm background tone (not legal-document styling)", type:"Calm, friendly typography — avoid anything that looks like a disclaimer wall", props:"None needed", mood:"Warm reassurance, not legalistic — this is not legal advice, just accessible context" }
+      }
+    ]
+  },
+  8: {
+    theme: "BRAND & COMMUNITY — Staying Top of Mind",
+    goal: "Closing branding pass: consistency, community, and forward-looking brand presence for the evergreen phase of the calendar.",
+    days: [
+      {
+        id:55, persona:"All Segments", type:"Brand — Community",
+        title:"Real bitcoin, real people.", format:"Static / Quote card",
+        strategy:"Branding pass. Community-spotlight format — placeholder structure for real testimonials/quotes once they exist; keep generic and honest until real quotes are collected.",
+        en:"We started this because we believed people wanted a simpler way to give real bitcoin.\n\nEvery card that ships is a small bet that we were right — and every story we hear back makes it feel a little less like a bet.\n\nIf Bitcards has been part of your gifting story, we'd genuinely love to hear it. 💬\n\n#Bitcards #Bitcoin #CommunitySpotlight #GiftBitcoin",
+        visual:{ bg:"Warm, simple quote-card layout with space reserved for a future real customer quote", type:"Friendly serif quote styling", props:"None — placeholder-safe until real testimonials exist", mood:"Warm, community-building tone — genuinely inviting engagement" }
+      },
+      {
+        id:56, persona:"All Segments", type:"Brand — Manifesto Recap",
+        title:"Our promise.", format:"Static / Quote card",
+        strategy:"Branding pass. A short, repeatable brand promise statement — the kind of post that works as an evergreen pinned piece.",
+        en:"No account. No app. No custodian. No exceptions.\n\nThat's not a launch promotion — it's the whole design of the product, and it isn't changing.\n\nIf that ever stops being true, you'll hear it from us before you read it anywhere else.\n\n#Bitcards #Bitcoin #OurPromise #SelfCustody",
+        visual:{ bg:"Bold, minimal statement card — graphite background, orange accent line", type:"Large Archivo display type, four short lines stacked", props:"None — pure typographic statement", mood:"Confident, quotable, evergreen — built to be screenshotted" }
+      },
+      {
+        id:57, persona:"Thoughtful Giver (Sarah)", type:"Brand — Tone Piece",
+        title:"Bitcoin, but make it human.", format:"Static / Lifestyle",
+        strategy:"Branding pass aimed at the less crypto-native audience — softens the category's often intimidating tone.",
+        en:"So much of Bitcoin culture is charts, jargon, and shouting into the void.\n\nWe'd rather talk about the stuff that actually matters to most people: a graduation gift that means something, a first step into saving that doesn't require a finance degree, a way to give something real instead of something that expires.\n\nBitcoin can be technical. It doesn't have to be cold.\n\n#Bitcards #Bitcoin #GiftBitcoin #MakeItHuman",
+        visual:{ bg:"Warm lifestyle photography style — everyday moment (coffee table, wrapped gift), soft natural light", type:"Gentle, conversational pull-quote overlay", props:"Card as part of an everyday scene, not a studio product shot", mood:"Warm, approachable, distinctly not 'crypto bro' aesthetic" }
+      },
+      {
+        id:58, persona:"All Segments", type:"Brand — Operations Transparency",
+        title:"What happens between your order and your doorstep.", format:"Static / Carousel",
+        strategy:"Branding pass. Operational transparency builds trust for a small, newer brand — shows there's a real, careful process behind each order.",
+        en:"Every Bitcard order goes through the same steps before it ships:\n\n1️⃣ Quality check on the card stock and seal integrity\n2️⃣ Hand-packed, tamper-evident packaging\n3️⃣ Shipped 3-5 business days, tracked\n\nNothing about a Bitcard is pre-loaded or pre-activated at any point in this process — by design, there's nothing sensitive to protect in transit.\n\n#Bitcards #Bitcoin #HowWeShip #Transparency",
+        visual:{ bg:"Clean 3-step process illustration, warehouse/packing table aesthetic", type:"Numbered steps, consistent with other process-explainer days", props:"Packaging materials, quality-check checklist", mood:"Operational transparency — reassuring without being oversold" }
+      },
+      {
+        id:59, persona:"Bitcoin Maxi / Cypherpunk", type:"Brand — Forward-Looking",
+        title:"What we're building next.", format:"Static / Teaser",
+        strategy:"Branding pass. Forward-looking teaser for the evergreen phase — keeps the brand feeling alive and in-motion without overpromising specifics.",
+        en:"A v1 product is never the whole plan.\n\nWe're listening to what the community actually wants next — more finishes, more denominations, more ways to give bitcoin without the usual trade-offs.\n\nNothing to announce yet. But we're building in public as much as we can, and we'll say more when there's something real to say.\n\n#Bitcards #Bitcoin #WhatsNext #BuildingInPublic",
+        visual:{ bg:"Near-black background, subtle grid/blueprint texture suggesting 'in progress'", type:"Understated typography — intentionally low-hype", props:"None — abstract, no false product reveals", mood:"Quietly confident, not hype-driven — matches the brand's honest tone" }
+      },
+      {
+        id:60, persona:"All Segments", type:"Brand — Vision",
+        title:"One year from now.", format:"Static / Vision piece",
+        strategy:"Branding pass. Closing piece for the full 60-day arc — a forward-looking, values-driven close that reinforces the brand's long-term intent.",
+        en:"A year from now, we want a Bitcard to be a normal answer to \"what do I get them?\" — not a novelty, not a niche crypto thing, just a thoughtful gift that happens to be real bitcoin.\n\nThat only works if the fundamentals stay exactly what they are today: no account, no app, no custodian.\n\nEverything else — the finishes, the denominations, the retail doors — is just detail in service of that one idea.\n\nThanks for being early. 🧡\n\n#Bitcards #Bitcoin #OurVision #SelfCustody",
+        visual:{ bg:"Warm, optimistic wide shot — card on a table with everyday context, golden-hour light", type:"Simple closing statement typography, understated", props:"Card + everyday scene, no hard sell elements", mood:"Warm, hopeful, values-driven close — the emotional bookend to the whole 60-day plan" }
+      }
+    ]
   }
 };
 
@@ -483,9 +696,13 @@ const plan = {
 function getCaption(id,orig){ return captionEdits[id]!==undefined ? captionEdits[id] : orig; }
 function isEdited(id,orig){ return captionEdits[id]!==undefined && captionEdits[id]!==orig; }
 
-function setWeek(w){
-  currentWeek=w; selectedId=null; editingDay=null;
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i+1===w));
+// Same 60-day sequence is posted to every platform, so flatten all weeks into one ordered list.
+const allDays = Object.keys(plan).sort((a,b)=>a-b).flatMap(k=>plan[k].days);
+const platformLabels = { facebook:'📘 Facebook', instagram:'📷 Instagram', tiktok:'🎵 TikTok' };
+
+function setPlatform(p){
+  currentPlatform=p; selectedId=null; editingDay=null;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.trim()===platformLabels[p]));
   render();
 }
 function selectDay(id){ selectedId=selectedId===id?null:id; editingDay=null; render(); }
@@ -776,13 +993,12 @@ function renderImgSection(dayId){
 }
 
 function render(){
-  const wk=plan[currentWeek];
   document.getElementById('week-header').innerHTML=`
-    <div class="week-label">WEEK ${currentWeek}</div>
-    <div class="week-theme">${wk.theme}</div>
-    <div class="week-goal">${wk.goal}</div>`;
+    <div class="week-label">${platformLabels[currentPlatform]}</div>
+    <div class="week-theme">Full 60-day calendar</div>
+    <div class="week-goal">This platform runs the same sequence as the other two — one asset per day, posted everywhere.</div>`;
 
-  document.getElementById('day-grid').innerHTML=wk.days.map(d=>{
+  document.getElementById('day-grid').innerHTML=allDays.map(d=>{
     const edited=isEdited(d.id,d.en), nimgs=(imgStore[d.id]||[]).length;
     return `
       <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
@@ -799,7 +1015,7 @@ function render(){
   }).join('');
 
   if(selectedId){
-    const d=wk.days.find(x=>x.id===selectedId);
+    const d=allDays.find(x=>x.id===selectedId);
     document.getElementById('detail-panel').innerHTML=`
       <div class="detail-panel"><div class="detail-inner">
         <div class="detail-meta">DAY ${String(d.id).padStart(2,'0')} · ${d.format}</div>
