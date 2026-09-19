@@ -158,10 +158,38 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .gate-error { color:#e63946; font-size:12px; margin-top:8px; min-height:16px; }
 .view-badge { display:inline-block; font-size:11px; font-weight:600; background:#f0f0ee; color:#666; border-radius:20px; padding:3px 10px; margin-left:8px; }
 
-@media(max-width:600px){
+@media(max-width:768px){
+  .container { padding: 0 1rem 2rem; }
+  .topnav { margin:0 -1rem; padding:10px 14px; }
+  .topnav-brand b { font-size:15px; }
+  .topnav-brand small { display:none; }
+  .stats-bar { margin:0 -1rem 0; padding:12px 14px; gap:18px; }
+  .stat-block b { font-size:18px; }
+  .stat-block span { font-size:9.5px; }
+  .filter-bar { top:45px; margin:0 -1rem 1.25rem; padding:10px 14px; gap:6px; }
+  .search-box { flex:1 1 100%; max-width:100%; }
+  .pill-filter { font-size:11px; padding:5px 11px; }
+  .day-grid { grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); }
+  .seasoning-grid { grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); }
   .brief-grid { grid-template-columns:1fr; }
-  .day-grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
-  .journey-bar { font-size:10px; }
+}
+@media(max-width:480px){
+  .container { padding: 0 .75rem 1.5rem; }
+  .topnav { margin:0 -.75rem; padding:9px 12px; }
+  .topnav-brand b { font-size:14px; }
+  .live-label { font-size:11px; }
+  .stats-bar { margin:0 -.75rem 0; padding:10px 12px; gap:14px; }
+  .stat-block b { font-size:16px; }
+  .stat-block span { font-size:9px; }
+  .filter-bar { margin:0 -.75rem 1rem; padding:8px 10px; }
+  .day-grid { grid-template-columns:1fr; gap:12px; }
+  .day-card { padding:.85rem; }
+  .day-title { font-size:13px; }
+  .card-preview { max-height:340px; }
+  .week-theme { font-size:16px; }
+  .visual-brief, .hashtags { font-size:12px; }
+  .detail-title { font-size:17px; }
+  .gate-box { padding:24px 20px; }
 }
 </style>
 </head>
