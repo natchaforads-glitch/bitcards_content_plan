@@ -48,9 +48,13 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .week-goal { font-size:13px; color:#666; }
 
 .day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-bottom:1.5rem; }
-.day-card { background:white; border:1.5px solid #e5e5e1; border-radius:10px; padding:1rem; cursor:pointer; transition:all 0.15s; }
+.day-card { background:white; border:1.5px solid #e5e5e1; border-radius:10px; padding:1rem; cursor:pointer; transition:all 0.15s; overflow:hidden; }
 .day-card:hover { border-color:#aaa; transform:translateY(-1px); }
 .day-card.active { border-color:#f7931a; background:#fff8f0; }
+.card-preview { width:calc(100% + 2rem); margin:-1rem -1rem 10px; aspect-ratio:9/16; max-height:280px; background:linear-gradient(135deg,#f0f0ee,#e5e5e1); overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; }
+.card-preview img, .card-preview video { width:100%; height:100%; object-fit:cover; display:block; }
+.card-preview .no-media-icon { font-size:26px; color:#ccc; }
+.card-preview .preview-count { position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,.6); color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; }
 .day-num { font-size:11px; font-weight:600; letter-spacing:.08em; color:#aaa; margin-bottom:6px; }
 .pill-row { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
 .mini-pill { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 8px; border-radius:20px; color:#fff; }
@@ -80,7 +84,10 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .seasoning-cal summary { cursor:pointer; font-weight:700; font-size:13px; color:#333; }
 .seasoning-note { font-size:12px; color:#888; margin:10px 0 14px; }
 .seasoning-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
-.seasoning-item { background:#faf9f6; border-radius:8px; padding:10px 12px; font-size:12px; }
+.seasoning-item { background:#faf9f6; border-radius:8px; padding:10px 12px; font-size:12px; cursor:pointer; border:1.5px solid transparent; transition:all .15s; }
+.seasoning-item:hover { border-color:#ccc; }
+.seasoning-item.active { border-color:#7b5cff; background:#f5f2ff; }
+.seasoning-item .mini-pill { margin-bottom:6px; display:inline-block; }
 .seasoning-item b { display:block; margin-bottom:4px; font-size:12.5px; }
 .seasoning-item span { color:#888; }
 .deliverable-note { background:#fff7ed; border:1px solid #fde4c8; border-radius:8px; padding:8px 12px; font-size:12px; color:#92531a; margin-bottom:14px; }
@@ -199,17 +206,8 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
   <details class="seasoning-cal">
     <summary>📅 Bitcards Seasoning Calendar — positive US occasions worth a post</summary>
     <div class="seasoning-body">
-      <p class="seasoning-note">Not part of the 60-day sequence below — a reference list of dates worth slotting a post around once the real launch calendar is fixed. All chosen for a positive, product-relevant angle (Bitcoin, gifting, or money).</p>
-      <div class="seasoning-grid">
-        <div class="seasoning-item"><b>🍂 Fall Equinox</b><span>~Sept 22 — "give bitcoin while it's cooling down"</span></div>
-        <div class="seasoning-item"><b>🎃 Halloween / Bitcoin Whitepaper Day</b><span>Oct 31 — same date as the 2008 whitepaper. Rare overlap worth using.</span></div>
-        <div class="seasoning-item"><b>🦃 Thanksgiving</b><span>Late Nov — gratitude + gifting angle</span></div>
-        <div class="seasoning-item"><b>🛍️ Black Friday / Cyber Monday</b><span>Late Nov — real promo / bundle-offer angle</span></div>
-        <div class="seasoning-item"><b>🎄 Christmas / Holiday Season</b><span>December — the core of the Q4 launch window</span></div>
-        <div class="seasoning-item"><b>🎊 New Year's Day</b><span>Jan 1 — "New Year, self-custody your bitcoin"</span></div>
-        <div class="seasoning-item"><b>💝 Valentine's Day</b><span>Feb 14 — gifting angle</span></div>
-        <div class="seasoning-item"><b>🎓 Graduation Season</b><span>May–June — milestone-gifting angle</span></div>
-      </div>
+      <p class="seasoning-note">Not part of the 60-day sequence below — click any card for its full caption and visual brief, same as Day 1-60. Dates are approximate until the real launch calendar is fixed.</p>
+      <div class="seasoning-grid" id="seasoning-grid"></div>
     </div>
   </details>
 
@@ -738,17 +736,79 @@ function isVideoFormat(format){ return /reel|video|talking head/i.test(format); 
 function platformsFor(d){ return isVideoFormat(d.format) ? ['facebook','instagram','tiktok','youtube'] : ['facebook','instagram']; }
 
 // ── Email subscriber plan ────────────────────────────────────────────────────
+// ── Seasoning Calendar: full content, separate from the 60-day sequence ─────────
+// Reuses the same day-object schema so caption editing, image upload, and
+// platform/size briefs all work identically. IDs 61-68 to avoid colliding with Day 1-60.
+const seasoningPlan = [
+  {
+    id:61, persona:"All Segments", type:"Seasonal — Fall Equinox", when:"~Sept 22",
+    title:"Fall is here. So is a reason to give something that lasts.", format:"Static / Story",
+    strategy:"Seasoning Calendar — soft seasonal tie-in, timed to run just before or at the start of the 60-day sequence. Emotional framing, not a hard sell.",
+    en:"Leaves change. Seasons change. Bitcoin's fixed supply doesn't.\n\nAs summer turns to fall, most gifts we give fade with the season — flowers wilt, candles burn down, gift cards expire.\n\nA Bitcard doesn't. Whatever's loaded onto it stays exactly as real as the day you gave it.\n\nSomething that lasts, for a change. 🍂\n\n#Bitcards #Bitcoin #FallEquinox #GiftBitcoin",
+    visual:{ bg:"Warm autumn-toned flat lay — card on a table with fallen leaves, soft golden afternoon light", type:"Simple seasonal pull-quote overlay, warm serif", props:"Card + a few autumn leaves, cozy sweater texture in background", mood:"Warm, seasonal, cozy — a gentle shift in tone from the campaign's cleaner studio look" }
+  },
+  {
+    id:62, persona:"Bitcoin Maxi / Cypherpunk", type:"Seasonal — Bitcoin Whitepaper Day", when:"Oct 31",
+    title:"On this day in 2008, everything changed.", format:"Static / Carousel",
+    strategy:"Seasoning Calendar — rare calendar overlap (Halloween = Bitcoin Whitepaper Day). Dual-audience angle: casual Halloween scroll-stoppers and Bitcoin-history credibility for Maxis.",
+    en:"October 31st isn't just Halloween.\n\nIt's the day in 2008 Satoshi Nakamoto published the Bitcoin whitepaper — nine pages that started everything you're holding today.\n\nNo company. No CEO. No permission asked. Just an idea, published for anyone to read.\n\nA fitting day to give someone their first real bitcoin. 🎃₿\n\n#Bitcards #Bitcoin #WhitepaperDay #Halloween",
+    visual:{ bg:"Split visual — one half subtle Halloween texture (dark orange/black), one half whitepaper document mockup", type:"Bold date callout '10.31.2008', mono font for the whitepaper reference", props:"Stylized generic whitepaper page mockup (not reproducing actual copyrighted text), card alongside", mood:"Clever dual-meaning moment — equal parts fun and genuinely history-minded" }
+  },
+  {
+    id:63, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Thanksgiving", when:"Late Nov",
+    title:"Grateful for the people who taught us to save, not just spend.", format:"Static / Story",
+    strategy:"Seasoning Calendar — gratitude + gifting angle timed to Thanksgiving week, softens into the following Black Friday promotional push.",
+    en:"Thanksgiving is a good time to think about who taught you what you know about money.\n\nMaybe it was a parent who made you open a savings account. A grandparent who gave savings bonds instead of toys. Someone who cared more about your future than your immediate excitement.\n\nA Bitcard is a small way to carry that forward — a gift that says \"I'm thinking about your future,\" not just your Thursday.\n\n#Bitcards #Bitcoin #Thanksgiving #GiftBitcoin",
+    visual:{ bg:"Warm home setting — table set for a meal, card placed near a place setting", type:"Gentle handwritten-style overlay, warm and personal", props:"Card, simple table setting, warm lighting", mood:"Family-warm, reflective — not overly commercial for a gratitude-focused holiday" }
+  },
+  {
+    id:64, persona:"All Segments", type:"Seasonal — Promotional", when:"Late Nov",
+    title:"Our one sale of the year.", format:"Static / Promo",
+    strategy:"Seasoning Calendar — the year's single real promotional push, paired with the Black Friday/Cyber Monday email. Direct, time-boxed, no ambiguity.",
+    en:"We don't run sales often. This is the one.\n\nBlack Friday through Cyber Monday — check the site for this year's offer.\n\nIf you've been waiting to try Bitcards, or to stock up for holiday gifting, this is the window.\n\nEnds Monday night. No extensions. ⏰\n\n#Bitcards #Bitcoin #BlackFriday #CyberMonday",
+    visual:{ bg:"Bold, high-contrast promo graphic — Bitcoin Orange background, countdown-style urgency", type:"Large bold Archivo display type, clear offer callout", props:"Card front and center, minimal distraction", mood:"Confident, time-boxed urgency — the one moment in the calendar allowed to feel like a real sale" }
+  },
+  {
+    id:65, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Holiday Gifting", when:"December",
+    title:"Still deciding what to get them?", format:"Static / Story",
+    strategy:"Seasoning Calendar — core Q4 holiday gifting window, direct nudge pairing with the campaign's Week 4 conversion content.",
+    en:"It's the gift-buying scramble again — and somehow the hardest people to shop for are always the ones you love most.\n\nA Bitcard skips the guessing. It's not a sweater that might not fit or a gadget they might not use. It's real value, real ownership, from the moment they open it.\n\nWrap it, tag it, done. 🎁\n\n#Bitcards #Bitcoin #HolidayGifting #ChristmasGift",
+    visual:{ bg:"Cozy holiday flat lay — wrapped gifts, card visible among them, warm string lights softly blurred in background", type:"Festive but restrained typography — no clichéd Bitcoin-meets-Christmas visual puns", props:"Card, simple wrapping paper, string lights", mood:"Warm, premium holiday gifting — a quality DTC brand's December campaign, not a novelty crypto ad" }
+  },
+  {
+    id:66, persona:"Bitcoin Maxi / HODLer", type:"Seasonal — New Year", when:"Jan 1",
+    title:"New Year, new keys.", format:"Static / Quote card",
+    strategy:"Seasoning Calendar — self-custody resolution angle, natural close to the holiday gifting stretch and the campaign's Day 60 vision piece.",
+    en:"Resolutions rarely stick. Here's one built to be easy to keep: this is the year you actually hold your own bitcoin.\n\nNo migrating an exchange balance. No learning curve. Just a card, twelve words, and math that doesn't care if it's January 1st or any other day.\n\nStart the year owning it. 🎊\n\n#Bitcards #Bitcoin #NewYear #SelfCustody",
+    visual:{ bg:"Clean, minimal New Year's graphic — dark graphite background, single subtle firework/spark motif", type:"Bold, confident resolution-style statement typography", props:"Card only, no crowded party imagery", mood:"Confident, resolution-setting tone — calm rather than a chaotic party visual" }
+  },
+  {
+    id:67, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Valentine's Day", when:"Feb 14",
+    title:"Flowers fade. This doesn't.", format:"Static / Story",
+    strategy:"Seasoning Calendar — classic gifting-occasion angle, deliberately contrasts with traditional fading Valentine's gifts (flowers/chocolate).",
+    en:"Flowers are beautiful for about a week.\n\nA Bitcard is a different kind of Valentine's gift — one that doesn't wilt, expire, or get eaten in one sitting. Just real value, given with real thought.\n\nRomantic and practical aren't mutually exclusive. 💝\n\n#Bitcards #Bitcoin #ValentinesDay #GiftBitcoin",
+    visual:{ bg:"Soft romantic flat lay — card next to (but visually distinct from) a single wilting flower for contrast", type:"Elegant serif overlay, soft warm accent used sparingly against the brand's core palette", props:"Card + one flower prop for the fading-vs-lasting visual contrast", mood:"Warm, a little cheeky, genuinely romantic without being saccharine" }
+  },
+  {
+    id:68, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Graduation", when:"May–June",
+    title:"The gift that starts their financial story, not just their bookshelf.", format:"Static / Story",
+    strategy:"Seasoning Calendar — milestone-gifting angle for graduation season, dual-audience (family gift-givers and corporate/institutional gifting).",
+    en:"Congratulations gifts tend to be things: a watch, a laptop bag, another mug that says \"Class of [Year].\"\n\nA Bitcard is a different kind of congratulations — a genuine first step into owning something real, at the exact moment someone's starting to build their own financial story.\n\nA milestone gift for an actual milestone. 🎓\n\n#Bitcards #Bitcoin #Graduation #GiftBitcoin",
+    visual:{ bg:"Clean, optimistic graduation-adjacent flat lay — card alongside a rolled diploma ribbon, bright natural light", type:"Optimistic, celebratory but not childish typography", props:"Card + diploma ribbon or graduation cap silhouette, kept minimal", mood:"Optimistic milestone energy — appeals to both a parent gifting and a company gifting to new grad hires" }
+  }
+];
+
 const emailPlan = [
-  { id:'e1', trigger:'Launch week', subject:'The bitcoin gift card that doesn\'t ask for your trust.', concept:'Announce Bitcards to the list — what it is, why it exists, and the core "no account, no app, no custodian" promise. First impression email, sets the tone for everything after.' },
-  { id:'e2', trigger:'Week 1 follow-up', subject:'How it actually works (in 4 steps)', concept:'The plain-language explainer from Day 3, adapted to email format — scan, generate, send, hand over. Include a short GIF or the Day 7 video if ready.' },
-  { id:'e3', trigger:'Mid-campaign, ~2 weeks in', subject:'The #1 question we get about safety', concept:'Safety & storage education, framed as answering real reader questions — reduces support burden and builds trust before asking for a purchase.' },
-  { id:'e4', trigger:'Fall Equinox (~Sept 22)', subject:'Fall is here. So is a reason to give something that lasts.', concept:'Seasonal tie-in from the Seasoning Calendar — soft-sell, mostly seasonal/emotional framing rather than a hard offer.' },
-  { id:'e5', trigger:'~30 days in', subject:'3 for $30 — give two, keep one', concept:'The bundle offer, direct and promotional. This is the email allowed to actually push a purchase; earlier emails built the trust for it.' },
-  { id:'e6', trigger:'Halloween / Bitcoin Whitepaper Day (Oct 31)', subject:'On this day in 2008...', concept:'Bitcoin Whitepaper Day history angle — informational and shareable, positions the brand as bitcoin-literate, not just sales-focused.' },
-  { id:'e7', trigger:'Black Friday / Cyber Monday', subject:'Our one sale of the season', concept:'The real promotional push of the year — clear, time-boxed offer, minimal fluff.' },
-  { id:'e8', trigger:'Holiday season (December)', subject:'Still deciding what to get them?', concept:'Gifting-angle nudge during the core Q4 window — pairs well with the Week 4 conversion content already in the calendar.' },
-  { id:'e9', trigger:'New Year\'s Day', subject:'New Year, new keys', concept:'Self-custody resolution angle — a natural moment for "start the year owning your own bitcoin" messaging.' },
-  { id:'e10', trigger:'Evergreen / ongoing', subject:'What we\'re building next', concept:'Recurring brand-forward email reusing the Day 59 "what\'s next" theme — keeps the list warm between promotional pushes.' }
+  { id:'e1', dayRef:'Day 1', trigger:'Launch week', subject:'The bitcoin gift card that doesn\'t ask for your trust.', concept:'Announce Bitcards to the list — what it is, why it exists, and the core "no account, no app, no custodian" promise. Sent alongside Day 1\'s "What\'s inside?" post.' },
+  { id:'e2', dayRef:'Day 3', trigger:'Week 1 follow-up', subject:'How it actually works (in 4 steps)', concept:'The plain-language explainer from Day 3, adapted to email format — scan, generate, send, hand over. Sent same day as the Day 3 explainer post.' },
+  { id:'e3', dayRef:'Day 4', trigger:'Mid-campaign, ~2 weeks in', subject:'The #1 question we get about safety', concept:'Safety & storage education, framed as answering real reader questions. Sent alongside Day 4\'s "Where do your 12 words go?" post.' },
+  { id:'e4', dayRef:'Pre-launch', trigger:'Fall Equinox (~Sept 22)', subject:'Fall is here. So is a reason to give something that lasts.', concept:'Seasonal tie-in from the Seasoning Calendar — sent before Day 1, as a warm-up teaser ahead of the 60-day sequence starting.' },
+  { id:'e5', dayRef:'Day 22', trigger:'Bundle offer', subject:'3 for $30 — give two, keep one', concept:'The bundle offer, direct and promotional. Sent same day as Day 22\'s "3 for $30" post — the one email allowed to actually push a purchase.' },
+  { id:'e6', dayRef:'Day 30', trigger:'Halloween / Bitcoin Whitepaper Day (Oct 31)', subject:'On this day in 2008...', concept:'Bitcoin Whitepaper Day history angle, timed near Day 30\'s teaser post. Informational and shareable, positions the brand as bitcoin-literate.' },
+  { id:'e7', dayRef:'Day 48', trigger:'Black Friday / Cyber Monday', subject:'Our one sale of the season', concept:'The real promotional push of the year, timed near Day 48. Clear, time-boxed offer, minimal fluff.' },
+  { id:'e8', dayRef:'Day 55', trigger:'Holiday season (December)', subject:'Still deciding what to get them?', concept:'Gifting-angle nudge during the core Q4 window, timed near Day 55. Pairs well with the brand-community closing stretch.' },
+  { id:'e9', dayRef:'Day 60', trigger:'New Year\'s Day', subject:'New Year, new keys', concept:'Self-custody resolution angle. Sent alongside Day 60\'s "One year from now" closing post — natural bookend for the whole campaign.' },
+  { id:'e10', dayRef:'Ongoing', trigger:'Evergreen / recurring', subject:'What we\'re building next', concept:'Recurring brand-forward email reusing the Day 59 "what\'s next" theme — no fixed day, resend periodically to keep the list warm between pushes.' }
 ];
 
 let currentFilter = 'all';
@@ -1058,7 +1118,26 @@ function renderImgSection(dayId){
     </div>`;
 }
 
+function renderSeasoningGrid(){
+  const grid = document.getElementById('seasoning-grid');
+  if(!grid) return;
+  grid.innerHTML = seasoningPlan.map(s=>{
+    const edited = isEdited(s.id, s.en), nimgs=(imgStore[s.id]||[]).length;
+    return `
+      <div class="seasoning-item ${selectedId===s.id?'active':''}" onclick="selectDay(${s.id})">
+        <span class="mini-pill" style="background:#7b5cff">${s.when}</span>
+        <b>${s.title}</b>
+        <span>${s.type}</span>
+        <div class="badge-row">
+          ${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}
+          ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
 function render(){
+  renderSeasoningGrid();
   const editedCount = allDays.filter(d=>isEdited(d.id,d.en)).length;
   const withMediaCount = allDays.filter(d=>(imgStore[d.id]||[]).length>0).length;
   const videoCount = allDays.filter(d=>isVideoFormat(d.format)).length;
@@ -1077,6 +1156,7 @@ function render(){
     document.getElementById('filter-count').textContent = emailPlan.length + ' emails planned';
     document.getElementById('day-grid').innerHTML=emailPlan.map(e=>`
       <div class="day-card email-card">
+        <div class="pill-row"><span class="mini-pill" style="background:#2d5bff">${e.dayRef}</span></div>
         <div class="day-num">${e.trigger.toUpperCase()}</div>
         <div class="day-title">${e.subject}</div>
         <div class="email-concept">${e.concept}</div>
@@ -1098,8 +1178,19 @@ function render(){
     const phase = phaseFor(d);
     const plats = platformsFor(d);
     const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e'};
+    const media = imgStore[d.id]||[];
+    const previewSrc = media[0];
+    const previewHtml = previewSrc
+      ? (isVideoUrl(previewSrc)
+          ? `<video src="${previewSrc}" muted playsinline></video>`
+          : `<img src="${previewSrc}" alt="${d.title}">`)
+      : `<span class="no-media-icon">🖼️</span>`;
     return `
       <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
+        <div class="card-preview">
+          ${previewHtml}
+          ${media.length>1?`<span class="preview-count">+${media.length-1}</span>`:''}
+        </div>
         <div class="day-num">DAY ${String(d.id).padStart(2,'0')}</div>
         <div class="pill-row">
           <span class="mini-pill" style="background:${phaseColors[phase]||'#999'}">${phaseLabels[phase]}</span>
@@ -1117,7 +1208,7 @@ function render(){
   }).join('');
 
   if(selectedId){
-    const d=allDays.find(x=>x.id===selectedId);
+    const d=allDays.find(x=>x.id===selectedId) || seasoningPlan.find(x=>x.id===selectedId);
     document.getElementById('detail-panel').innerHTML=`
       <div class="detail-panel"><div class="detail-inner">
         <div class="detail-meta">DAY ${String(d.id).padStart(2,'0')} · ${d.format}</div>
