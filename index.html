@@ -7,37 +7,54 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; color: #1a1a1a; font-size: 15px; line-height: 1.6; }
-.container { max-width: 1120px; margin: 0 auto; padding: 2rem 1.5rem; }
+.container { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 2rem; }
 
-.header { background: #111; color: #fff; border-radius: 12px; padding: 2rem 2.5rem; margin-bottom: 2rem; }
-.header h1 { font-size: 24px; font-weight: 700; margin-bottom: 0.3rem; letter-spacing: -0.02em; }
-.header .tagline { font-size: 13px; color: #f7931a; font-weight: 500; margin-bottom: 0.3rem; }
-.header p { font-size: 13px; color: #888; }
-.journey-bar { display: flex; margin-top: 1.5rem; border-radius: 8px; overflow: hidden; font-size: 12px; font-weight: 600; }
-.platform-note { font-size:11px; color:#999; margin-top:8px; }
-.j1{flex:1;background:#2d5bff;padding:8px 10px;text-align:center;}
-.j2{flex:1;background:#00a878;padding:8px 10px;text-align:center;}
-.j3{flex:1;background:#f7931a;color:#1a1a1a;padding:8px 10px;text-align:center;}
-.j4{flex:1;background:#e63946;padding:8px 10px;text-align:center;}
+/* ── Sticky top nav ─────────────────────────────────────────────────────────── */
+.topnav { position:sticky; top:0; z-index:50; background:#1C1C1E; color:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; margin:0 -1.5rem; }
+.topnav-brand { display:flex; align-items:baseline; gap:8px; }
+.topnav-brand b { font-size:17px; font-weight:800; letter-spacing:-.01em; }
+.topnav-brand b span { color:#F7931A; }
+.topnav-brand small { font-size:12px; color:#999; }
+.topnav-right { display:flex; align-items:center; gap:10px; }
+.live-dot { width:7px; height:7px; border-radius:50%; background:#3ecf6e; display:inline-block; box-shadow:0 0 0 3px rgba(62,207,110,0.2); }
+.live-label { font-size:12px; color:#bbb; display:flex; align-items:center; gap:6px; }
+
+/* ── Stats dashboard strip ──────────────────────────────────────────────────── */
+.stats-bar { background:#262625; color:#fff; display:flex; margin:0 -1.5rem 0; padding:14px 24px; gap:34px; flex-wrap:wrap; }
+.stat-block b { font-size:22px; font-weight:800; color:#F7931A; display:block; line-height:1.1; }
+.stat-block span { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#999; }
+
+/* ── Sticky filter bar ──────────────────────────────────────────────────────── */
+.filter-bar { position:sticky; top:49px; z-index:40; background:#fff; border-bottom:1px solid #eee; margin:0 -1.5rem 1.5rem; padding:14px 24px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.search-box { flex:1 1 220px; max-width:280px; padding:8px 12px; border:1.5px solid #e5e5e1; border-radius:8px; font-size:13px; font-family:inherit; outline:none; }
+.search-box:focus { border-color:#F7931A; }
+.pill-filter { padding:6px 14px; border-radius:20px; border:1.5px solid #e5e5e1; background:#fff; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; color:#555; transition:all .15s; white-space:nowrap; }
+.pill-filter:hover { border-color:#bbb; }
+.pill-filter.active { background:#1C1C1E; color:#fff; border-color:#1C1C1E; }
+.pill-filter.active.phase-awareness{background:#2d5bff;border-color:#2d5bff;}
+.pill-filter.active.phase-trust{background:#00a878;border-color:#00a878;}
+.pill-filter.active.phase-social{background:#F7931A;border-color:#F7931A;color:#1a1a1a;}
+.pill-filter.active.phase-conversion{background:#e63946;border-color:#e63946;}
+.pill-filter.active.phase-inform{background:#7b5cff;border-color:#7b5cff;}
+.pill-filter.active.phase-brand{background:#c8862e;border-color:#c8862e;}
+.filter-count { font-size:12px; color:#999; margin:0 0 14px; }
 
 .save-indicator { display:none; position:fixed; bottom:20px; right:20px; background:#1a1a1a; color:white; padding:8px 16px; border-radius:8px; font-size:13px; z-index:999; }
 .save-indicator.show { display:block; }
-
-.tabs { display:flex; gap:8px; margin-bottom:1.5rem; flex-wrap:wrap; }
-.tab-btn { padding:7px 18px; border-radius:8px; border:1.5px solid #ddd; background:white; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-.tab-btn:hover { border-color:#999; }
-.tab-btn.active { background:#1a1a1a; color:white; border-color:#1a1a1a; }
 
 .week-header { margin-bottom:1.25rem; }
 .week-label { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#999; margin-bottom:4px; }
 .week-theme { font-size:19px; font-weight:700; margin-bottom:4px; }
 .week-goal { font-size:13px; color:#666; }
 
-.day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(185px,1fr)); gap:10px; margin-bottom:1.5rem; }
+.day-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-bottom:1.5rem; }
 .day-card { background:white; border:1.5px solid #e5e5e1; border-radius:10px; padding:1rem; cursor:pointer; transition:all 0.15s; }
 .day-card:hover { border-color:#aaa; transform:translateY(-1px); }
 .day-card.active { border-color:#f7931a; background:#fff8f0; }
-.day-num { font-size:11px; font-weight:600; letter-spacing:.08em; color:#aaa; margin-bottom:4px; }
+.day-num { font-size:11px; font-weight:600; letter-spacing:.08em; color:#aaa; margin-bottom:6px; }
+.pill-row { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+.mini-pill { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 8px; border-radius:20px; color:#fff; }
+.mini-pill.plat { background:#1C1C1E; }
 .day-persona { font-size:10px; font-weight:700; color:#f7931a; margin-bottom:2px; text-transform:uppercase; letter-spacing:.06em; }
 .day-type { font-size:11px; font-weight:700; color:#2d5bff; margin-bottom:3px; text-transform:uppercase; letter-spacing:.05em; }
 .day-title { font-size:14px; font-weight:600; color:#1a1a1a; line-height:1.4; margin-bottom:8px; }
@@ -147,30 +164,42 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 </div>
 <div class="save-indicator" id="save-indicator">💾 Saved</div>
 <div class="container" id="main-container" style="display:none">
-  <div class="header">
-    <h1>Bitcards Content Plan<span class="view-badge" id="role-badge" style="display:none"></span></h1>
-    <div class="tagline">"The bitcoin you can actually hand someone."</div>
-    <p>Based on U.S. Market Entry Strategy · Q4 2026 Launch · 60 posts · Awareness → Trust → Social Proof → Conversion → Inform → Brand</p>
-    <div class="journey-bar">
-      <div class="j1">📘 Facebook</div>
-      <div class="j2">📷 Instagram</div>
-      <div class="j3">🎵 TikTok</div>
+  <div class="topnav">
+    <div class="topnav-brand">
+      <b>BIT<span>CARDS</span></b>
+      <small>Content Plan</small>
     </div>
-    <p class="platform-note">Same 60-day content calendar — one asset produced per day, reused across all three channels. Tabs below are just a per-platform view; the sequence and captions are identical.</p>
+    <div class="topnav-right">
+      <span class="live-label"><span class="live-dot"></span>LIVE</span>
+      <span class="view-badge" id="role-badge" style="display:none"></span>
+    </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab-btn active" onclick="setPlatform('facebook')">📘 Facebook</button>
-    <button class="tab-btn" onclick="setPlatform('instagram')">📷 Instagram</button>
-    <button class="tab-btn" onclick="setPlatform('tiktok')">🎵 TikTok</button>
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <div class="filter-bar" id="filter-bar">
+    <input type="text" class="search-box" id="search-box" placeholder="Search captions, hashtags, hooks…" oninput="setSearch(this.value)">
+    <button class="pill-filter active" onclick="setFilter('all')">All</button>
+    <button class="pill-filter phase-awareness" onclick="setFilter('awareness')">Awareness</button>
+    <button class="pill-filter phase-trust" onclick="setFilter('trust')">Education &amp; Trust</button>
+    <button class="pill-filter phase-social" onclick="setFilter('social')">Social Proof</button>
+    <button class="pill-filter phase-conversion" onclick="setFilter('conversion')">Conversion</button>
+    <button class="pill-filter phase-inform" onclick="setFilter('inform')">Inform</button>
+    <button class="pill-filter phase-brand" onclick="setFilter('brand')">Brand</button>
+    <button class="pill-filter" onclick="setFilter('facebook')">📘 Facebook</button>
+    <button class="pill-filter" onclick="setFilter('instagram')">📷 Instagram</button>
+    <button class="pill-filter" onclick="setFilter('tiktok')">🎵 TikTok</button>
+    <button class="pill-filter" onclick="setFilter('youtube')">▶️ YouTube</button>
+    <button class="pill-filter" onclick="setFilter('email')">📧 Email</button>
   </div>
 
   <div id="week-header" class="week-header"></div>
+  <div class="filter-count" id="filter-count"></div>
 
   <details class="seasoning-cal">
     <summary>📅 Bitcards Seasoning Calendar — positive US occasions worth a post</summary>
     <div class="seasoning-body">
-      <p class="seasoning-note">Not part of the 33-day sequence below — a reference list of dates worth slotting a post around once the real launch calendar is fixed. All chosen for a positive, product-relevant angle (Bitcoin, gifting, or money).</p>
+      <p class="seasoning-note">Not part of the 60-day sequence below — a reference list of dates worth slotting a post around once the real launch calendar is fixed. All chosen for a positive, product-relevant angle (Bitcoin, gifting, or money).</p>
       <div class="seasoning-grid">
         <div class="seasoning-item"><b>🍂 Fall Equinox</b><span>~Sept 22 — "give bitcoin while it's cooling down"</span></div>
         <div class="seasoning-item"><b>🎃 Halloween / Bitcoin Whitepaper Day</b><span>Oct 31 — same date as the 2008 whitepaper. Rare overlap worth using.</span></div>
@@ -216,7 +245,6 @@ const defaultImgs = {
 let captionEdits = {}; // populated from the server once the access gate succeeds
 let imgStore     = Object.assign({}, defaultImgs);
 window.addEventListener('DOMContentLoaded', tryAutoUnlock);
-let currentPlatform = 'facebook';
 let selectedId   = null;
 let editingDay   = null;
 
@@ -698,12 +726,50 @@ function isEdited(id,orig){ return captionEdits[id]!==undefined && captionEdits[
 
 // Same 60-day sequence is posted to every platform, so flatten all weeks into one ordered list.
 const allDays = Object.keys(plan).sort((a,b)=>a-b).flatMap(k=>plan[k].days);
-const platformLabels = { facebook:'📘 Facebook', instagram:'📷 Instagram', tiktok:'🎵 TikTok' };
+const platformLabels = { facebook:'📘 Facebook', instagram:'📷 Instagram', tiktok:'🎵 TikTok', youtube:'▶️ YouTube Shorts', email:'📧 Email' };
+const phaseLabels = { awareness:'Awareness', trust:'Education & Trust', social:'Social Proof', conversion:'Conversion', inform:'Inform', brand:'Brand' };
+// Maps each plan week number to its short phase key, for filtering + card badges.
+const weekPhase = { 1:'awareness', 2:'trust', 3:'social', 4:'conversion', 5:'inform', 6:'brand', 7:'inform', 8:'brand' };
+function phaseFor(d){ for(const wk in plan){ if(plan[wk].days.some(x=>x.id===d.id)) return weekPhase[wk]; } return null; }
 
-function setPlatform(p){
-  currentPlatform=p; selectedId=null; editingDay=null;
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.textContent.trim()===platformLabels[p]));
+// Static content runs on Facebook + Instagram only. Video content runs everywhere video lives —
+// Facebook, Instagram Reels, TikTok, and YouTube Shorts. Not every day posts to every platform.
+function isVideoFormat(format){ return /reel|video|talking head/i.test(format); }
+function platformsFor(d){ return isVideoFormat(d.format) ? ['facebook','instagram','tiktok','youtube'] : ['facebook','instagram']; }
+
+// ── Email subscriber plan ────────────────────────────────────────────────────
+const emailPlan = [
+  { id:'e1', trigger:'Launch week', subject:'The bitcoin gift card that doesn\'t ask for your trust.', concept:'Announce Bitcards to the list — what it is, why it exists, and the core "no account, no app, no custodian" promise. First impression email, sets the tone for everything after.' },
+  { id:'e2', trigger:'Week 1 follow-up', subject:'How it actually works (in 4 steps)', concept:'The plain-language explainer from Day 3, adapted to email format — scan, generate, send, hand over. Include a short GIF or the Day 7 video if ready.' },
+  { id:'e3', trigger:'Mid-campaign, ~2 weeks in', subject:'The #1 question we get about safety', concept:'Safety & storage education, framed as answering real reader questions — reduces support burden and builds trust before asking for a purchase.' },
+  { id:'e4', trigger:'Fall Equinox (~Sept 22)', subject:'Fall is here. So is a reason to give something that lasts.', concept:'Seasonal tie-in from the Seasoning Calendar — soft-sell, mostly seasonal/emotional framing rather than a hard offer.' },
+  { id:'e5', trigger:'~30 days in', subject:'3 for $30 — give two, keep one', concept:'The bundle offer, direct and promotional. This is the email allowed to actually push a purchase; earlier emails built the trust for it.' },
+  { id:'e6', trigger:'Halloween / Bitcoin Whitepaper Day (Oct 31)', subject:'On this day in 2008...', concept:'Bitcoin Whitepaper Day history angle — informational and shareable, positions the brand as bitcoin-literate, not just sales-focused.' },
+  { id:'e7', trigger:'Black Friday / Cyber Monday', subject:'Our one sale of the season', concept:'The real promotional push of the year — clear, time-boxed offer, minimal fluff.' },
+  { id:'e8', trigger:'Holiday season (December)', subject:'Still deciding what to get them?', concept:'Gifting-angle nudge during the core Q4 window — pairs well with the Week 4 conversion content already in the calendar.' },
+  { id:'e9', trigger:'New Year\'s Day', subject:'New Year, new keys', concept:'Self-custody resolution angle — a natural moment for "start the year owning your own bitcoin" messaging.' },
+  { id:'e10', trigger:'Evergreen / ongoing', subject:'What we\'re building next', concept:'Recurring brand-forward email reusing the Day 59 "what\'s next" theme — keeps the list warm between promotional pushes.' }
+];
+
+let currentFilter = 'all';
+let searchText = '';
+
+function setFilter(f){
+  currentFilter=f; selectedId=null; editingDay=null;
+  document.querySelectorAll('.pill-filter').forEach(b=>b.classList.toggle('active', b.getAttribute('onclick')===`setFilter('${f}')`));
   render();
+}
+function setSearch(v){ searchText=v.trim().toLowerCase(); selectedId=null; render(); }
+
+function matchesFilter(d){
+  if(currentFilter==='all') return true;
+  if(phaseLabels[currentFilter]) return phaseFor(d)===currentFilter;
+  return platformsFor(d).includes(currentFilter);
+}
+function matchesSearch(d){
+  if(!searchText) return true;
+  const hay = (d.title+' '+d.en+' '+d.type+' '+d.persona).toLowerCase();
+  return hay.includes(searchText);
 }
 function selectDay(id){ selectedId=selectedId===id?null:id; editingDay=null; render(); }
 function startEdit(id){ editingDay=id; render(); setTimeout(()=>{ const t=document.getElementById('ta-'+id); if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);}},40); }
@@ -993,16 +1059,52 @@ function renderImgSection(dayId){
 }
 
 function render(){
-  document.getElementById('week-header').innerHTML=`
-    <div class="week-label">${platformLabels[currentPlatform]}</div>
-    <div class="week-theme">Full 60-day calendar</div>
-    <div class="week-goal">This platform runs the same sequence as the other two — one asset per day, posted everywhere.</div>`;
+  const editedCount = allDays.filter(d=>isEdited(d.id,d.en)).length;
+  const withMediaCount = allDays.filter(d=>(imgStore[d.id]||[]).length>0).length;
+  const videoCount = allDays.filter(d=>isVideoFormat(d.format)).length;
+  document.getElementById('stats-bar').innerHTML=`
+    <div class="stat-block"><b>${allDays.length}</b><span>Total Posts</span></div>
+    <div class="stat-block"><b>${editedCount}</b><span>Edited</span></div>
+    <div class="stat-block"><b>${withMediaCount}</b><span>With Media</span></div>
+    <div class="stat-block"><b>${videoCount}</b><span>Video Days</span></div>
+    <div class="stat-block"><b>${emailPlan.length}</b><span>Emails Planned</span></div>`;
 
-  document.getElementById('day-grid').innerHTML=allDays.map(d=>{
+  if(currentFilter === 'email'){
+    document.getElementById('week-header').innerHTML=`
+      <div class="week-label">📧 Email</div>
+      <div class="week-theme">Subscriber email plan</div>
+      <div class="week-goal">A separate, lower-frequency channel — periodic sends tied to campaign moments, not a daily post.</div>`;
+    document.getElementById('filter-count').textContent = emailPlan.length + ' emails planned';
+    document.getElementById('day-grid').innerHTML=emailPlan.map(e=>`
+      <div class="day-card email-card">
+        <div class="day-num">${e.trigger.toUpperCase()}</div>
+        <div class="day-title">${e.subject}</div>
+        <div class="email-concept">${e.concept}</div>
+      </div>`).join('');
+    document.getElementById('detail-panel').innerHTML = '';
+    return;
+  }
+
+  const filtered = allDays.filter(d => matchesFilter(d) && matchesSearch(d));
+  const filterName = currentFilter==='all' ? 'All Posts' : (phaseLabels[currentFilter] || platformLabels[currentFilter]);
+  document.getElementById('week-header').innerHTML=`
+    <div class="week-label">${filterName}</div>
+    <div class="week-theme">${filtered.length} of ${allDays.length} posts</div>
+    <div class="week-goal">${currentFilter==='tiktok'||currentFilter==='youtube' ? 'Video days only — static-image days skip this channel.' : ''}</div>`;
+  document.getElementById('filter-count').textContent = filtered.length + '/' + allDays.length + ' posts';
+
+  document.getElementById('day-grid').innerHTML=filtered.map(d=>{
     const edited=isEdited(d.id,d.en), nimgs=(imgStore[d.id]||[]).length;
+    const phase = phaseFor(d);
+    const plats = platformsFor(d);
+    const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e'};
     return `
       <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
         <div class="day-num">DAY ${String(d.id).padStart(2,'0')}</div>
+        <div class="pill-row">
+          <span class="mini-pill" style="background:${phaseColors[phase]||'#999'}">${phaseLabels[phase]}</span>
+          ${plats.map(p=>`<span class="mini-pill plat">${platformLabels[p].split(' ')[0]}</span>`).join('')}
+        </div>
         <div class="day-persona">${d.persona}</div>
         <div class="day-type">${d.type}</div>
         <div class="day-title">${d.title}</div>
@@ -1027,7 +1129,7 @@ function render(){
         ${renderCaptionBlock(d)}
         <div class="visual-brief">
           <div class="sec-label">Visual Brief for Graphic Designer</div>
-          <div class="deliverable-note">📱 Platforms: Facebook · Instagram · TikTok (1 asset/day, reused across all 3) &nbsp;|&nbsp; 📐 Required sizes: 1080×1080 (Square) + 1080×1920 (9:16)</div>
+          <div class="deliverable-note">📱 Platforms: ${platformsFor(d).map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 Required sizes: 1080×1080 (Square) + 1080×1920 (9:16)</div>
           <div class="brief-grid">
             <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
             <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
