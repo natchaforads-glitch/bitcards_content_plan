@@ -1210,6 +1210,10 @@ function render(){
           ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
         </div>
         <details class="collapsible-section" onclick="event.stopPropagation()">
+          <summary>▼ Caption</summary>
+          ${renderCaptionBlock(d)}
+        </details>
+        <details class="collapsible-section" onclick="event.stopPropagation()">
           <summary>▼ Visual Brief + All Hashtags</summary>
           <div class="visual-brief">
             <div class="deliverable-note">📱 ${plats.map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 1080×1080 + 1080×1920</div>
