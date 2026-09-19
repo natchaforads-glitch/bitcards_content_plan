@@ -87,7 +87,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .seasoning-item { background:#faf9f6; border-radius:8px; padding:10px 12px; font-size:12px; cursor:pointer; border:1.5px solid transparent; transition:all .15s; }
 .seasoning-item:hover { border-color:#ccc; }
 .seasoning-item.active { border-color:#7b5cff; background:#f5f2ff; }
-.seasoning-item .mini-pill { margin-bottom:6px; display:inline-block; }
+.seasoning-item .mini-pill { margin-bottom:6px; display:inline-block; font-size:11px; padding:3px 10px; }
 .seasoning-item b { display:block; margin-bottom:4px; font-size:12.5px; }
 .seasoning-item span { color:#888; }
 .deliverable-note { background:#fff7ed; border:1px solid #fde4c8; border-radius:8px; padding:8px 12px; font-size:12px; color:#92531a; margin-bottom:14px; }
@@ -198,8 +198,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
     <button class="pill-filter phase-conversion" onclick="setFilter('conversion')">Conversion</button>
     <button class="pill-filter phase-inform" onclick="setFilter('inform')">Inform</button>
     <button class="pill-filter phase-brand" onclick="setFilter('brand')">Brand</button>
-    <button class="pill-filter" onclick="setFilter('facebook')">📘 Facebook</button>
-    <button class="pill-filter" onclick="setFilter('instagram')">📷 Instagram</button>
+    <button class="pill-filter" onclick="setFilter('fbig')">📘📷 Facebook/Instagram</button>
     <button class="pill-filter" onclick="setFilter('tiktok')">🎵 TikTok</button>
     <button class="pill-filter" onclick="setFilter('youtube')">▶️ YouTube</button>
     <button class="pill-filter" onclick="setFilter('email')">📧 Email</button>
@@ -729,7 +728,7 @@ function isEdited(id,orig){ return captionEdits[id]!==undefined && captionEdits[
 
 // Same 60-day sequence is posted to every platform, so flatten all weeks into one ordered list.
 const allDays = Object.keys(plan).sort((a,b)=>a-b).flatMap(k=>plan[k].days);
-const platformLabels = { facebook:'📘 Facebook', instagram:'📷 Instagram', tiktok:'🎵 TikTok', youtube:'▶️ YouTube Shorts', email:'📧 Email' };
+const platformLabels = { fbig:'📘📷 Facebook/Instagram', tiktok:'🎵 TikTok', youtube:'▶️ YouTube Shorts', email:'📧 Email' };
 const phaseLabels = { awareness:'Awareness', trust:'Education & Trust', social:'Social Proof', conversion:'Conversion', inform:'Inform', brand:'Brand' };
 // Maps each plan week number to its short phase key, for filtering + card badges.
 const weekPhase = { 1:'awareness', 2:'trust', 3:'social', 4:'conversion', 5:'inform', 6:'brand', 7:'inform', 8:'brand' };
@@ -738,7 +737,7 @@ function phaseFor(d){ for(const wk in plan){ if(plan[wk].days.some(x=>x.id===d.i
 // Static content runs on Facebook + Instagram only. Video content runs everywhere video lives —
 // Facebook, Instagram Reels, TikTok, and YouTube Shorts. Not every day posts to every platform.
 function isVideoFormat(format){ return /reel|video|talking head/i.test(format); }
-function platformsFor(d){ return isVideoFormat(d.format) ? ['facebook','instagram','tiktok','youtube'] : ['facebook','instagram']; }
+function platformsFor(d){ return isVideoFormat(d.format) ? ['fbig','tiktok','youtube'] : ['fbig']; }
 
 // ── Email subscriber plan ────────────────────────────────────────────────────
 // ── Seasoning Calendar: full content, separate from the 60-day sequence ─────────
@@ -760,21 +759,21 @@ const seasoningPlan = [
     visual:{ bg:"Split visual — one half subtle Halloween texture (dark orange/black), one half whitepaper document mockup", type:"Bold date callout '10.31.2008', mono font for the whitepaper reference", props:"Stylized generic whitepaper page mockup (not reproducing actual copyrighted text), card alongside", mood:"Clever dual-meaning moment — equal parts fun and genuinely history-minded" }
   },
   {
-    id:63, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Thanksgiving", when:"Late Nov",
+    id:63, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Thanksgiving", when:"Nov 26",
     title:"Grateful for the people who taught us to save, not just spend.", format:"Static / Story",
     strategy:"Seasoning Calendar — gratitude + gifting angle timed to Thanksgiving week, softens into the following Black Friday promotional push.",
     en:"Thanksgiving is a good time to think about who taught you what you know about money.\n\nMaybe it was a parent who made you open a savings account. A grandparent who gave savings bonds instead of toys. Someone who cared more about your future than your immediate excitement.\n\nA Bitcard is a small way to carry that forward — a gift that says \"I'm thinking about your future,\" not just your Thursday.\n\n#Bitcards #Bitcoin #Thanksgiving #GiftBitcoin",
     visual:{ bg:"Warm home setting — table set for a meal, card placed near a place setting", type:"Gentle handwritten-style overlay, warm and personal", props:"Card, simple table setting, warm lighting", mood:"Family-warm, reflective — not overly commercial for a gratitude-focused holiday" }
   },
   {
-    id:64, persona:"All Segments", type:"Seasonal — Promotional", when:"Late Nov",
+    id:64, persona:"All Segments", type:"Seasonal — Promotional", when:"Nov 27–30",
     title:"Our one sale of the year.", format:"Static / Promo",
     strategy:"Seasoning Calendar — the year's single real promotional push, paired with the Black Friday/Cyber Monday email. Direct, time-boxed, no ambiguity.",
     en:"We don't run sales often. This is the one.\n\nBlack Friday through Cyber Monday — check the site for this year's offer.\n\nIf you've been waiting to try Bitcards, or to stock up for holiday gifting, this is the window.\n\nEnds Monday night. No extensions. ⏰\n\n#Bitcards #Bitcoin #BlackFriday #CyberMonday",
     visual:{ bg:"Bold, high-contrast promo graphic — Bitcoin Orange background, countdown-style urgency", type:"Large bold Archivo display type, clear offer callout", props:"Card front and center, minimal distraction", mood:"Confident, time-boxed urgency — the one moment in the calendar allowed to feel like a real sale" }
   },
   {
-    id:65, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Holiday Gifting", when:"December",
+    id:65, persona:"Thoughtful Giver (Sarah)", type:"Seasonal — Holiday Gifting", when:"Dec 25",
     title:"Still deciding what to get them?", format:"Static / Story",
     strategy:"Seasoning Calendar — core Q4 holiday gifting window, direct nudge pairing with the campaign's Week 4 conversion content.",
     en:"It's the gift-buying scramble again — and somehow the hardest people to shop for are always the ones you love most.\n\nA Bitcard skips the guessing. It's not a sweater that might not fit or a gadget they might not use. It's real value, real ownership, from the moment they open it.\n\nWrap it, tag it, done. 🎁\n\n#Bitcards #Bitcoin #HolidayGifting #ChristmasGift",
@@ -1130,7 +1129,7 @@ function renderSeasoningGrid(){
     const edited = isEdited(s.id, s.en), nimgs=(imgStore[s.id]||[]).length;
     return `
       <div class="seasoning-item ${selectedId===s.id?'active':''}" onclick="selectDay(${s.id})">
-        <span class="mini-pill" style="background:#7b5cff">${s.when}</span>
+        <span class="mini-pill" style="background:#2d5bff">${s.when}</span>
         <b>${s.title}</b>
         <span>${s.type}</span>
         <div class="badge-row">
@@ -1183,19 +1182,9 @@ function render(){
     const phase = phaseFor(d);
     const plats = platformsFor(d);
     const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e'};
-    const media = imgStore[d.id]||[];
-    const previewSrc = media[0];
-    const previewHtml = previewSrc
-      ? (isVideoUrl(previewSrc)
-          ? `<video src="${previewSrc}" muted playsinline></video>`
-          : `<img src="${previewSrc}" alt="${d.title}">`)
-      : `<span class="no-media-icon">🖼️</span>`;
     return `
       <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
-        <div class="card-preview">
-          ${previewHtml}
-          ${media.length>1?`<span class="preview-count">+${media.length-1}</span>`:''}
-        </div>
+        <div onclick="event.stopPropagation()">${renderImgSection(d.id)}</div>
         <div class="day-num">DAY ${String(d.id).padStart(2,'0')}</div>
         <div class="pill-row">
           <span class="mini-pill" style="background:${phaseColors[phase]||'#999'}">${phaseLabels[phase]}</span>
@@ -1239,7 +1228,6 @@ function render(){
         <div class="detail-title">${d.title}</div>
         <div class="detail-concept">${d.concept||''}</div>
         <div class="strategy-tag">📋 Strategy: ${d.strategy}</div>
-        ${renderCaptionBlock(d)}
         <details class="collapsible-section">
           <summary>▼ Visual Brief</summary>
           <div class="visual-brief">
@@ -1256,7 +1244,6 @@ function render(){
           <summary>▼ All Hashtags</summary>
           <div class="hashtags">#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC</div>
         </details>
-        ${renderImgSection(d.id)}
       </div></div>`;
   } else {
     document.getElementById('detail-panel').innerHTML=`
