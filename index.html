@@ -42,6 +42,33 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .save-indicator { display:none; position:fixed; bottom:20px; right:20px; background:#1a1a1a; color:white; padding:8px 16px; border-radius:8px; font-size:13px; z-index:999; }
 .save-indicator.show { display:block; }
 
+/* ── Edit modal ─────────────────────────────────────────────────────────────── */
+.modal-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.55); display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 16px; }
+.modal-box { background:#fff; border-radius:12px; width:min(640px,100%); overflow:hidden; }
+.modal-header { background:#1C1C1E; color:#fff; padding:16px 22px; display:flex; align-items:center; justify-content:space-between; font-weight:800; letter-spacing:.03em; font-size:15px; }
+.modal-close { cursor:pointer; font-size:18px; opacity:.7; }
+.modal-close:hover { opacity:1; }
+.modal-body { padding:22px; max-height:80vh; overflow-y:auto; }
+.mf-row { display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+.mf-field { flex:1 1 140px; }
+.mf-field label { display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#999; margin-bottom:5px; }
+.mf-field input[type=text], .mf-field input[type=number], .mf-field select, .mf-field textarea {
+  width:100%; padding:8px 10px; border:1.5px solid #e5e5e1; border-radius:8px; font-size:13px; font-family:inherit; resize:vertical;
+}
+.mf-field input:focus, .mf-field select:focus, .mf-field textarea:focus { outline:none; border-color:#F7931A; }
+.mf-checkbox-row { display:flex; align-items:center; gap:8px; background:#fff7fa; border:1px solid #fde0ec; border-radius:8px; padding:10px 12px; margin-bottom:14px; font-size:12.5px; color:#b3487a; font-weight:600; }
+.mf-checkbox-row input { width:16px; height:16px; }
+.mf-platform-checks { display:flex; gap:14px; padding:8px 0; font-size:13px; }
+.mf-platform-checks label { display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer; }
+.mf-section-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#F7931A; margin:20px 0 12px; border-top:1px solid #f0f0ee; padding-top:16px; }
+.modal-actions { display:flex; gap:10px; margin-top:20px; }
+.modal-save { flex:1; background:#00a878; color:#fff; border:none; border-radius:8px; padding:12px; font-weight:700; font-size:14px; cursor:pointer; }
+.modal-save:hover { background:#008c65; }
+.modal-cancel { background:#f0f0ee; color:#555; border:none; border-radius:8px; padding:12px 22px; font-weight:700; font-size:14px; cursor:pointer; }
+.edit-btn { background:#2d5bff; color:#fff; border:none; border-radius:6px; padding:5px 14px; font-size:12px; font-weight:700; cursor:pointer; }
+.edit-btn:hover { background:#1e46d6; }
+.status-badge { font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 9px; border-radius:20px; color:#fff; }
+
 .week-header { margin-bottom:1.25rem; }
 .week-label { font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#999; margin-bottom:4px; }
 .week-theme { font-size:19px; font-weight:700; margin-bottom:4px; }
@@ -204,6 +231,16 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
   </div>
 </div>
 <div class="save-indicator" id="save-indicator">💾 Saved</div>
+
+<div class="modal-overlay" id="edit-modal-overlay" style="display:none" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="modal-title">EDIT POST</span>
+      <span class="modal-close" onclick="closeEditModal()">✕</span>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
 <div class="container" id="main-container" style="display:none">
   <div class="topnav">
     <div class="topnav-brand">
@@ -266,6 +303,7 @@ const defaultImgs = {
 };
 
 let captionEdits = {}; // populated from the server once the access gate succeeds
+let postMeta = {}; // per-day overrides: status, category/platform/format/hook, hashtags, visual, notes, isOccasion
 let imgStore     = Object.assign({}, defaultImgs);
 window.addEventListener('DOMContentLoaded', tryAutoUnlock);
 let selectedId   = null;
@@ -755,6 +793,20 @@ const phaseLabels = { awareness:'Awareness', trust:'Education & Trust', social:'
 const weekPhase = { 1:'awareness', 2:'trust', 3:'social', 4:'conversion', 5:'inform', 6:'brand', 7:'inform', 8:'brand' };
 function phaseFor(d){ for(const wk in plan){ if(plan[wk].days.some(x=>x.id===d.id)) return weekPhase[wk]; } return null; }
 
+// ── Edit-modal overrides ─────────────────────────────────────────────────────
+const DEFAULT_HASHTAGS = '#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC';
+const STATUS_COLORS = { draft:'#999', review:'#e8a23c', approved:'#00a878', scheduled:'#2d5bff' };
+function metaFor(id){ return postMeta[id] || {}; }
+function effStatus(d){ return metaFor(d.id).status || 'draft'; }
+function effHook(d){ const m=metaFor(d.id); return m.hook!==undefined && m.hook!=='' ? m.hook : d.type; }
+function effFormat(d){ const m=metaFor(d.id); return m.format!==undefined && m.format!=='' ? m.format : d.format; }
+function effHashtags(d){ const m=metaFor(d.id); return (m.hashtags && m.hashtags.length) ? m.hashtags : DEFAULT_HASHTAGS; }
+function effVisual(d){ const m=metaFor(d.id); return m.visual || d.visual; }
+function effNotes(d){ return metaFor(d.id).notes || ''; }
+function effIsOccasion(d){ const m=metaFor(d.id); return m.isOccasion!==undefined ? m.isOccasion : (d.id>60); }
+function effCategory(d, isOccasion){ const m=metaFor(d.id); return m.category || (isOccasion?'occasion':phaseFor(d)); }
+function effPlatforms(d){ const m=metaFor(d.id); return (m.platforms && m.platforms.length) ? m.platforms : platformsFor(d); }
+
 // Static content runs on Facebook + Instagram only. Video content runs everywhere video lives —
 // Facebook, Instagram Reels, TikTok, and YouTube Shorts. Not every day posts to every platform.
 function isVideoFormat(format){ return /reel|video|talking head/i.test(format); }
@@ -980,6 +1032,15 @@ async function submitGate(){
       }
     }catch(e){ console.error('Could not load shared captions', e); }
 
+    // Post metadata (status, category/platform/format/hook overrides, hashtags, visual, notes).
+    try{
+      const metaRes = await fetch('/api/postmeta', { headers: { 'X-Access-Password': pw } });
+      if(metaRes.ok){
+        const metaData = await metaRes.json();
+        postMeta = metaData.meta || {};
+      }
+    }catch(e){ console.error('Could not load shared post metadata', e); }
+
     hideGate();
     const badge = document.getElementById('role-badge');
     if(currentRole === 'view'){ badge.style.display=''; badge.textContent='👁 View only'; }
@@ -1020,6 +1081,152 @@ async function editFetch(payload, endpoint){
     throw new Error('Unauthorized');
   }
   return res;
+}
+
+// ── Edit modal ────────────────────────────────────────────────────────────────
+const CATEGORY_OPTIONS = ['awareness','trust','social','conversion','inform','brand','occasion'];
+const CATEGORY_DISPLAY = { awareness:'Awareness', trust:'Education & Trust', social:'Social Proof', conversion:'Conversion', inform:'Inform', brand:'Brand', occasion:'Occasion' };
+
+function findDay(id){ return allDays.find(x=>x.id===id) || seasoningPlan.find(x=>x.id===id); }
+
+function openEditModal(id){
+  const d = findDay(id);
+  if(!d) return;
+  if(currentRole !== 'edit'){ showToast('⚠️ Edit password required for this','#e63946'); return; }
+  const isOcc = effIsOccasion(d);
+  const status = effStatus(d);
+  const category = effCategory(d, isOcc);
+  const plats = effPlatforms(d);
+  const hook = effHook(d);
+  const format = effFormat(d);
+  const caption = getCaption(d.id, d.en);
+  const hashtags = effHashtags(d);
+  const visual = effVisual(d);
+  const notes = effNotes(d);
+
+  document.getElementById('modal-title').textContent = `EDIT POST #${d.id}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="mf-row">
+      <div class="mf-field" style="flex:0 0 80px"><label>#</label><input type="text" value="${d.id}" disabled></div>
+      <div class="mf-field">
+        <label>Status</label>
+        <select id="mf-status">
+          ${['draft','review','approved','scheduled'].map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <label class="mf-checkbox-row">
+      <input type="checkbox" id="mf-occasion" ${isOcc?'checked':''}>
+      🎉 This is a fixed-date Occasion (holiday, launch, seasonal drop)
+    </label>
+    <div class="mf-row">
+      <div class="mf-field">
+        <label>Category</label>
+        <select id="mf-category">
+          ${CATEGORY_OPTIONS.map(c=>`<option value="${c}" ${c===category?'selected':''}>${CATEGORY_DISPLAY[c]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="mf-field">
+        <label>Format</label>
+        <input type="text" id="mf-format" value="${format.replace(/"/g,'&quot;')}">
+      </div>
+    </div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Platforms</label>
+      <div class="mf-platform-checks">
+        <label><input type="checkbox" id="mf-plat-fbig" ${plats.includes('fbig')?'checked':''}> Facebook/Instagram</label>
+        <label><input type="checkbox" id="mf-plat-ttyt" ${plats.includes('ttyt')?'checked':''}> TikTok/YouTube Shorts</label>
+      </div>
+    </div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Hook</label>
+      <input type="text" id="mf-hook" value="${hook.replace(/"/g,'&quot;')}">
+    </div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Caption</label>
+      <textarea id="mf-caption" rows="5">${caption}</textarea>
+    </div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Hashtags (space-separated)</label>
+      <textarea id="mf-hashtags" rows="2">${hashtags}</textarea>
+    </div>
+    <div class="mf-section-label">Visual Brief — For Graphic Designer</div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Background / Setting</label>
+      <textarea id="mf-vbg" rows="2">${visual.bg}</textarea>
+    </div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Typography Direction</label>
+      <textarea id="mf-vtype" rows="2">${visual.type}</textarea>
+    </div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Props / Subjects</label>
+      <textarea id="mf-vprops" rows="2">${visual.props}</textarea>
+    </div>
+    <div class="mf-field" style="margin-bottom:14px">
+      <label>Mood / Reference</label>
+      <textarea id="mf-vmood" rows="2">${visual.mood}</textarea>
+    </div>
+    <div class="mf-section-label">Media — Images &amp; Videos</div>
+    ${renderImgSection(d.id)}
+    <div class="mf-field" style="margin:14px 0">
+      <label>Notes</label>
+      <textarea id="mf-notes" rows="2">${notes}</textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-save" onclick="saveEditModal(${d.id})">✓ Save Changes</button>
+      <button class="modal-cancel" onclick="closeEditModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('edit-modal-overlay').style.display = 'flex';
+}
+
+function closeEditModal(){
+  document.getElementById('edit-modal-overlay').style.display = 'none';
+}
+
+async function saveEditModal(id){
+  const d = findDay(id);
+  if(!d) return;
+
+  const newCaption = document.getElementById('mf-caption').value;
+  const plats = [];
+  if(document.getElementById('mf-plat-fbig').checked) plats.push('fbig');
+  if(document.getElementById('mf-plat-ttyt').checked) plats.push('ttyt');
+
+  const patch = {
+    status: document.getElementById('mf-status').value,
+    isOccasion: document.getElementById('mf-occasion').checked,
+    category: document.getElementById('mf-category').value,
+    format: document.getElementById('mf-format').value,
+    platforms: plats,
+    hook: document.getElementById('mf-hook').value,
+    hashtags: document.getElementById('mf-hashtags').value,
+    visual: {
+      bg: document.getElementById('mf-vbg').value,
+      type: document.getElementById('mf-vtype').value,
+      props: document.getElementById('mf-vprops').value,
+      mood: document.getElementById('mf-vmood').value,
+    },
+    notes: document.getElementById('mf-notes').value,
+  };
+
+  try{
+    // Caption goes through its own endpoint (shared with the inline caption editor).
+    if(newCaption !== getCaption(d.id, d.en)){
+      const capRes = await editFetch({ dayId:id, caption:newCaption }, '/api/captions');
+      if(capRes.ok) captionEdits[id] = newCaption;
+    }
+    const res = await editFetch({ dayId:id, patch }, '/api/postmeta');
+    if(!res.ok) throw new Error('save failed');
+    postMeta[id] = { ...(postMeta[id]||{}), ...patch };
+    showToast('💾 Post saved — visible to everyone');
+    closeEditModal();
+    render();
+  }catch(e){
+    console.error(e);
+    showToast('⚠️ Could not save post','#e63946');
+  }
 }
 
 async function saveImageRecord(dayId, url){
@@ -1158,14 +1365,18 @@ function renderImgSection(dayId){
 // so structure, collapsibles, and upload/caption behavior stay identical everywhere.
 function dayCardHtml(d, isOccasion){
   const edited=isEdited(d.id,d.en), nimgs=(imgStore[d.id]||[]).length;
-  const plats = platformsFor(d);
-  const phase = isOccasion ? null : phaseFor(d);
-  const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e'};
+  const effIsOcc = effIsOccasion(d) || isOccasion;
+  const plats = effPlatforms(d);
+  const category = effCategory(d, effIsOcc);
+  const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e',occasion:'#c837a8'};
   const platformShort = { fbig:['FB','IG'], ttyt:['TikTok','Shorts'] };
   const platBadges = plats.flatMap(p=>platformShort[p]||[p]);
-  const topBadge = isOccasion
+  const status = effStatus(d);
+  const topBadge = effIsOcc && isOccasion
     ? `<span class="mini-pill" style="background:#2d5bff">${d.when}</span>`
-    : `<span class="mini-pill" style="background:${phaseColors[phase]||'#999'}">${phaseLabels[phase]}</span>`;
+    : `<span class="mini-pill" style="background:${phaseColors[category]||'#999'}">${CATEGORY_DISPLAY[category]||category}</span>`;
+  const hook = effHook(d);
+  const format = effFormat(d);
   return `
     <div class="day-card ${selectedId===d.id?'active':''}" onclick="selectDay(${d.id})">
       ${bestPreviewHtml(d.id, d.title)}
@@ -1173,11 +1384,13 @@ function dayCardHtml(d, isOccasion){
         <span class="day-num-inline">${isOccasion ? 'CONTENT ' + String(d.id-60).padStart(2,'0') : 'DAY ' + String(d.id).padStart(2,'0')}</span>
         ${topBadge}
         ${platBadges.map(p=>`<span class="mini-pill plat">${p}</span>`).join('')}
+        <span class="status-badge" style="background:${STATUS_COLORS[status]||'#999'}">${status}</span>
+        <button class="edit-btn" style="margin-left:auto" onclick="event.stopPropagation();openEditModal(${d.id})">Edit</button>
       </div>
       <div class="day-persona">${d.persona}</div>
-      <div class="day-type">${d.type}</div>
+      <div class="day-type">${hook}</div>
       <div class="day-title">${d.title}</div>
-      <span class="format-pill">${d.format}</span>
+      <span class="format-pill">${format}</span>
       <div class="badge-row">
         ${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}
         ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
@@ -1191,12 +1404,12 @@ function dayCardHtml(d, isOccasion){
         <div class="visual-brief">
           <div class="deliverable-note">📱 ${plats.map(p=>platformLabels[p]).join(' · ')} &nbsp;|&nbsp; 📐 1080×1080 + 1080×1920</div>
           <div class="brief-grid">
-            <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${d.visual.bg}</div></div>
-            <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${d.visual.type}</div></div>
-            <div class="brief-item"><div class="brief-key">Props / Subjects</div><div class="brief-val">${d.visual.props}</div></div>
-            <div class="brief-item"><div class="brief-key">Mood / Reference</div><div class="brief-val">${d.visual.mood}</div></div>
+            <div class="brief-item"><div class="brief-key">Background / Setting</div><div class="brief-val">${effVisual(d).bg}</div></div>
+            <div class="brief-item"><div class="brief-key">Typography Direction</div><div class="brief-val">${effVisual(d).type}</div></div>
+            <div class="brief-item"><div class="brief-key">Props / Subjects</div><div class="brief-val">${effVisual(d).props}</div></div>
+            <div class="brief-item"><div class="brief-key">Mood / Reference</div><div class="brief-val">${effVisual(d).mood}</div></div>
           </div>
-          <div class="hashtags">#Bitcards #Bitcoin #CryptoGift #GiftBitcoin #SelfCustody #BitcardLife #BTC</div>
+          <div class="hashtags">${effHashtags(d)}</div>
         </div>
       </details>
       <details class="collapsible-section" onclick="event.stopPropagation()">
@@ -1235,12 +1448,14 @@ function render(){
   }
 
   if(currentFilter === 'occasions'){
+    const manuallyFlagged = allDays.filter(d=>metaFor(d.id).isOccasion === true);
+    const totalOcc = seasoningPlan.length + manuallyFlagged.length;
     document.getElementById('week-header').innerHTML=`
       <div class="week-label">🎉 Occasions</div>
-      <div class="week-theme">${seasoningPlan.length} seasonal posts</div>
+      <div class="week-theme">${totalOcc} seasonal posts</div>
       <div class="week-goal">Not part of the core 60-day sequence — click any card for its full caption and visual brief, same as Day 1-60. Each shows the fixed date it needs to go live.</div>`;
-    document.getElementById('filter-count').textContent = seasoningPlan.length + ' occasions';
-    document.getElementById('day-grid').innerHTML = seasoningPlan.map(s=>dayCardHtml(s,true)).join('');
+    document.getElementById('filter-count').textContent = totalOcc + ' occasions';
+    document.getElementById('day-grid').innerHTML = seasoningPlan.map(s=>dayCardHtml(s,true)).join('') + manuallyFlagged.map(d=>dayCardHtml(d,false)).join('');
   } else {
     const filtered = allDays.filter(d => matchesFilter(d) && matchesSearch(d));
     const filterName = currentFilter==='all' ? 'All Posts' : (phaseLabels[currentFilter] || platformLabels[currentFilter]);
