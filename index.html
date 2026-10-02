@@ -168,6 +168,8 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .img-thumb .download-btn { position:absolute; top:5px; left:5px; background:rgba(0,0,0,0.65); color:white; border:none; border-radius:50%; width:22px; height:22px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; text-decoration:none; }
 .img-thumb .download-btn:hover { background:rgba(45,91,255,0.9); }
 .upload-zone { border:1.5px dashed #ccc; border-radius:8px; padding:1.2rem 1rem; text-align:center; cursor:pointer; background:#fafafa; transition:all .15s; margin-top:10px; }
+.upload-zone.uploading { border-color:#F7931A; background:#fff7ed; cursor:wait; pointer-events:none; }
+.uz-status { font-size:11.5px; font-weight:700; color:#F7931A; margin-top:4px; min-height:14px; }
 .upload-zone:hover { border-color:#f7931a; background:#fff8f0; }
 .upload-zone input { display:none; }
 .upload-zone .uz-icon { font-size:22px; display:block; margin-bottom:4px; }
@@ -313,6 +315,8 @@ const defaultImgs = {
 let captionEdits = {}; // populated from the server once the access gate succeeds
 let postMeta = {}; // per-day overrides: status, category/platform/format/hook, hashtags, visual, notes, isOccasion
 let customPosts = []; // ids of posts created entirely through "+ Add Post" (not part of the hardcoded plan)
+let currentEditModalId = null; // which post's Edit modal is currently open, if any
+let pendingUploads = new Map(); // dayId -> Promise, for uploads currently in-flight (compress/Cloudinary/save not yet finished)
 let imgStore     = Object.assign({}, defaultImgs);
 window.addEventListener('DOMContentLoaded', tryAutoUnlock);
 let selectedId   = null;
@@ -1168,6 +1172,10 @@ function openEditModal(id){
           ${['draft','review','approved','scheduled'].map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join('')}
         </select>
       </div>
+      <div class="mf-field">
+        <label>Scheduled Date</label>
+        <input type="date" id="mf-scheduled-date" value="${metaFor(d.id).scheduledDate||''}">
+      </div>
     </div>
     <label class="mf-checkbox-row">
       <input type="checkbox" id="mf-occasion" ${isOcc?'checked':''}>
@@ -1222,7 +1230,7 @@ function openEditModal(id){
       <textarea id="mf-vmood" rows="2">${visual.mood}</textarea>
     </div>
     <div class="mf-section-label">Media — Images &amp; Videos</div>
-    ${renderImgSection(d.id)}
+    <div id="modal-media-section">${renderImgSection(d.id)}</div>
     <div class="mf-field" style="margin:14px 0">
       <label>Notes</label>
       <textarea id="mf-notes" rows="2">${notes}</textarea>
@@ -1233,15 +1241,29 @@ function openEditModal(id){
     </div>
   `;
   document.getElementById('edit-modal-overlay').style.display = 'flex';
+  currentEditModalId = id;
 }
 
 function closeEditModal(){
   document.getElementById('edit-modal-overlay').style.display = 'none';
+  currentEditModalId = null;
 }
 
 async function saveEditModal(id){
   const d = findDay(id);
   if(!d) return;
+
+  const saveBtn = document.querySelector('.modal-save');
+
+  // If an upload is still in flight for this post, wait for it to finish first —
+  // this is exactly what used to let people save/close before the image was actually
+  // persisted, so the attachment silently never made it to the server.
+  if(pendingUploads.has(id)){
+    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = '⏳ Waiting for upload to finish…'; }
+    showToast('⏳ Finishing upload before saving…');
+    try{ await pendingUploads.get(id); }catch(e){}
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = '✓ Save Changes'; }
+  }
 
   const newCaption = document.getElementById('mf-caption').value;
   const plats = [];
@@ -1250,6 +1272,7 @@ async function saveEditModal(id){
 
   const patch = {
     status: document.getElementById('mf-status').value,
+    scheduledDate: document.getElementById('mf-scheduled-date').value,
     isOccasion: document.getElementById('mf-occasion').checked,
     category: document.getElementById('mf-category').value,
     format: document.getElementById('mf-format').value,
@@ -1288,45 +1311,69 @@ async function saveImageRecord(dayId, url){
   if(!res.ok) throw new Error('Could not save to shared gallery');
 }
 
+function setUploadIndicator(dayId, uploading, label){
+  document.querySelectorAll(`.upload-zone[data-upload-for="${dayId}"]`).forEach(zone=>{
+    zone.classList.toggle('uploading', uploading);
+    const hint = zone.querySelector('.uz-status');
+    if(hint) hint.textContent = uploading ? (label || 'Uploading… please wait, do not close this yet') : '';
+  });
+}
+
 async function handleUpload(dayId,input){
   const files=Array.from(input.files);
   input.value='';
   if(!imgStore[dayId]) imgStore[dayId]=[];
-  for(const file of files){
-    const isVideo = file.type.startsWith('video/');
-    showToast(isVideo ? '⬆️ Uploading video…' : '⬆️ Uploading…');
-    try{
-      let blob, ext;
-      if(isVideo){
-        // No client-side video compression — browsers can't do this reliably.
-        // Cloudinary applies its own light optimization on delivery.
-        blob = file;
-        ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
-      } else {
-        blob = await compressImage(file);
-        ext = 'jpg';
+
+  const uploadPromise = (async () => {
+    for(const file of files){
+      const isVideo = file.type.startsWith('video/');
+      setUploadIndicator(dayId, true, isVideo ? '⬆️ Uploading video… please wait' : '⬆️ Uploading… please wait');
+      showToast(isVideo ? '⬆️ Uploading video…' : '⬆️ Uploading…');
+      try{
+        let blob, ext;
+        if(isVideo){
+          // No client-side video compression — browsers can't do this reliably.
+          // Cloudinary applies its own light optimization on delivery.
+          blob = file;
+          ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+        } else {
+          blob = await compressImage(file);
+          ext = 'jpg';
+        }
+        const url = await uploadToCloudinary(blob, dayId, isVideo, ext);
+        await saveImageRecord(dayId, url);
+        imgStore[dayId].push(url);
+        showToast('📎 Saved — visible to everyone');
+        refreshMediaUI(dayId);
+      }catch(e){
+        console.error(e);
+        showToast('⚠️ Upload failed','#e63946');
       }
-      const url = await uploadToCloudinary(blob, dayId, isVideo, ext);
-      await saveImageRecord(dayId, url);
-      imgStore[dayId].push(url);
-      showToast('📎 Saved — visible to everyone');
-      render();
-    }catch(e){
-      console.error(e);
-      showToast('⚠️ Upload failed','#e63946');
     }
+  })();
+
+  pendingUploads.set(dayId, uploadPromise);
+  try{
+    await uploadPromise;
+  } finally {
+    pendingUploads.delete(dayId);
+    setUploadIndicator(dayId, false);
   }
 }
 
 async function removeImg(dayId,idx){
   const url=imgStore[dayId][idx];
   imgStore[dayId].splice(idx,1);
-  render();
+  refreshMediaUI(dayId); // in-place update — a full render() used to close the gallery the user was looking at
   try{
     const res = await editFetch({ dayId, url, action:'remove' });
     if(!res.ok) throw new Error('remove failed');
     showToast('🗑 Removed for everyone');
   }catch(e){
+    // Server rejected the removal — put the image back in local state so the UI doesn't
+    // silently disagree with what's actually saved.
+    imgStore[dayId].splice(idx,0,url);
+    refreshMediaUI(dayId);
     showToast('⚠️ Could not remove on server','#e63946');
   }
 }
@@ -1413,10 +1460,11 @@ function renderImgSection(dayId){
         }).join('')}
       </div>
       ${canEdit?`
-      <div class="upload-zone" onclick="document.getElementById('up-${dayId}').click()">
+      <div class="upload-zone" data-upload-for="${dayId}" onclick="document.getElementById('up-${dayId}').click()">
         <input type="file" id="up-${dayId}" accept="image/*,video/*" multiple onchange="handleUpload(${dayId},this)">
         <span class="uz-icon">📎</span>
         <p>Click to upload images or videos for Day ${dayId}</p>
+        <p class="uz-status"></p>
       </div>
       <p class="storage-note">Uploaded here — visible to everyone who opens this link</p>
       `:`<p class="storage-note">👁 View-only access — ask a team editor to add photos or videos here</p>`}
@@ -1441,13 +1489,14 @@ function dayCardHtml(d, isOccasion){
   const format = effFormat(d);
   const cardTopColor = (effIsOcc && isOccasion) ? '#2d5bff' : (phaseColors[category]||'#999');
   return `
-    <div class="day-card ${selectedId===d.id?'active':''}" style="border-top-color:${cardTopColor}" onclick="selectDay(${d.id})">
-      ${bestPreviewHtml(d.id, d.title)}
+    <div class="day-card ${selectedId===d.id?'active':''}" data-card-id="${d.id}" style="border-top-color:${cardTopColor}" onclick="selectDay(${d.id})">
+      <div class="card-preview-slot">${bestPreviewHtml(d.id, d.title)}</div>
       <div class="pill-row">
         <span class="day-num-inline">${isOccasion ? 'CONTENT ' + String(d.id-60).padStart(2,'0') : 'DAY ' + String(d.id).padStart(2,'0')}</span>
         ${topBadge}
         ${platBadges.map(p=>`<span class="mini-pill plat">${p}</span>`).join('')}
         <span class="status-badge" style="background:${STATUS_COLORS[status]||'#999'}">${status}</span>
+        ${metaFor(d.id).scheduledDate?`<span class="mini-pill" style="background:#333">📅 ${metaFor(d.id).scheduledDate}</span>`:''}
         <button class="edit-btn" style="margin-left:auto" onclick="event.stopPropagation();openEditModal(${d.id})">Edit</button>
       </div>
       <div class="day-persona">${d.persona}</div>
@@ -1482,7 +1531,7 @@ function dayCardHtml(d, isOccasion){
     </div>`;
 }
 
-function render(){
+function refreshStatsBar(){
   const renderableDays = getAllRenderableDays();
   const editedCount = renderableDays.filter(d=>isEdited(d.id,d.en)).length;
   const withMediaCount = renderableDays.filter(d=>(imgStore[d.id]||[]).length>0).length;
@@ -1493,6 +1542,37 @@ function render(){
     <div class="stat-block"><b>${withMediaCount}</b><span>With Media</span></div>
     <div class="stat-block"><b>${videoCount}</b><span>Video Days</span></div>
     <div class="stat-block"><b>${emailPlan.length}</b><span>Emails Planned</span></div>`;
+}
+
+// Updates just one card's media preview/gallery/badges in place — used after upload or
+// delete so we don't rebuild the whole 60-card grid (which used to reset every other
+// card's open/closed <details> state, including the very gallery the user was looking at).
+function refreshMediaUI(dayId){
+  refreshStatsBar();
+  const d = findDay(dayId);
+  const card = document.querySelector(`.day-card[data-card-id="${dayId}"]`);
+  if(card){
+    const previewSlot = card.querySelector('.card-preview-slot');
+    if(previewSlot) previewSlot.innerHTML = bestPreviewHtml(dayId, d?d.title:'');
+    const lazySlot = card.querySelector('.lazy-img-slot');
+    if(lazySlot) lazySlot.innerHTML = renderImgSection(dayId);
+    const badgeRow = card.querySelector('.badge-row');
+    if(badgeRow && d){
+      const edited = isEdited(dayId, d.en);
+      const nimgs = (imgStore[dayId]||[]).length;
+      badgeRow.innerHTML = `${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}`;
+    }
+  }
+  // If this same post's Edit modal is open, refresh its media section too.
+  if(currentEditModalId === dayId){
+    const modalMedia = document.getElementById('modal-media-section');
+    if(modalMedia) modalMedia.innerHTML = renderImgSection(dayId);
+  }
+}
+
+function render(){
+  refreshStatsBar();
+  const renderableDays = getAllRenderableDays();
 
   if(currentFilter === 'email'){
     document.getElementById('week-header').innerHTML=`
