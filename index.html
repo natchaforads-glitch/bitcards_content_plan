@@ -269,7 +269,6 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
     <input type="text" class="search-box" id="search-box" placeholder="Search captions, hashtags, hooks…" oninput="setSearch(this.value)">
     <button class="pill-filter active" onclick="setFilter('all')">All</button>
     <button class="pill-filter" onclick="setFilter('fbig')">Facebook/Instagram</button>
-    <button class="pill-filter" onclick="setFilter('ttyt')">TikTok/YouTube Shorts</button>
     <button class="pill-filter" onclick="setFilter('email')">Email</button>
     <button class="pill-filter" onclick="setFilter('occasions')">Occasions</button>
     <button class="pill-filter phase-awareness" onclick="setFilter('awareness')">Awareness</button>
@@ -330,7 +329,7 @@ const plan = {
     days: [
       {
         id:1, persona:"HODLer / Gift Giver", type:"Hook — Curiosity",
-        title:"What's inside?", format:"Reel / TikTok",
+        title:"What's inside?", format:"Reel",
         strategy:"USP1 — The address doesn't exist until you create it. Lead with intrigue, reveal with impact.",
         en:"You've never seen a gift card like this.\n\nWhat's inside?\n\nNothing. Not yet.\n\nNo bitcoin pre-loaded. No balance sitting anywhere. Just half a key, sealed on the card, waiting for you to generate the other half and make it real.\n\nThen you decide how much bitcoin to send.\n\nNo account. No app. Just a phone camera. 🪙\n\n#Bitcards #Bitcoin #SelfCustody #WhatIsThis",
         visual:{ bg:"Black Bitcard on white marble surrounded by gold BTC coins — overhead macro shot", type:"'What's inside?' bold white sans-serif centered on card face", props:"Card face up, BTC coins scattered naturally around it, Bitcards logo bottom right", mood:"Luxury mystery reveal — Supreme drop meets Apple keynote" }
@@ -800,7 +799,7 @@ function isEdited(id,orig){ return captionEdits[id]!==undefined && captionEdits[
 
 // Same 60-day sequence is posted to every platform, so flatten all weeks into one ordered list.
 const allDays = Object.keys(plan).sort((a,b)=>a-b).flatMap(k=>plan[k].days);
-const platformLabels = { fbig:'📘📷 Facebook/Instagram', ttyt:'🎵▶️ TikTok/YouTube Shorts', email:'📧 Email' };
+const platformLabels = { fbig:'📘📷 Facebook/Instagram', email:'📧 Email' };
 const phaseLabels = { awareness:'Awareness', trust:'Education & Trust', social:'Social Proof', conversion:'Conversion', inform:'Inform', brand:'Brand' };
 // Maps each plan week number to its short phase key, for filtering + card badges.
 const weekPhase = { 1:'awareness', 2:'trust', 3:'social', 4:'conversion', 5:'inform', 6:'brand', 7:'inform', 8:'brand' };
@@ -818,7 +817,8 @@ function effVisual(d){ const m=metaFor(d.id); return m.visual || d.visual; }
 function effNotes(d){ return metaFor(d.id).notes || ''; }
 function effIsOccasion(d){ const m=metaFor(d.id); return m.isOccasion!==undefined ? m.isOccasion : (d.id>60); }
 function effCategory(d, isOccasion){ const m=metaFor(d.id); return m.category || (isOccasion?'occasion':phaseFor(d)); }
-function effPlatforms(d){ const m=metaFor(d.id); return (m.platforms && m.platforms.length) ? m.platforms : platformsFor(d); }
+// TikTok/YouTube Shorts ('ttyt') was retired — any saved 'ttyt' is ignored so those posts show as FB/IG.
+function effPlatforms(d){ const m=metaFor(d.id); const saved=(m.platforms||[]).filter(p=>p!=='ttyt'); return saved.length ? saved : platformsFor(d); }
 
 // ── Custom posts (created via "+ Add Post", not part of the hardcoded plan) ─────
 function buildCustomDayObject(id){
@@ -863,10 +863,9 @@ async function addNewPost(){
 }
 
 
-// Static content runs on Facebook + Instagram only. Video content runs everywhere video lives —
-// Facebook, Instagram Reels, TikTok, and YouTube Shorts. Not every day posts to every platform.
+// All content — static and video (Facebook video + Instagram Reels) — runs on Facebook + Instagram.
 function isVideoFormat(format){ return /reel|video|talking head/i.test(format); }
-function platformsFor(d){ return isVideoFormat(d.format) ? ['fbig','ttyt'] : ['fbig']; }
+function platformsFor(d){ return ['fbig']; }
 
 // ── Email subscriber plan ────────────────────────────────────────────────────
 // ── Seasoning Calendar: full content, separate from the 60-day sequence ─────────
@@ -1196,9 +1195,7 @@ function openEditModal(id){
     <div class="mf-field" style="margin-bottom:14px">
       <label>Platforms</label>
       <div class="mf-platform-checks">
-        <label><input type="checkbox" id="mf-plat-fbig" ${plats.includes('fbig')?'checked':''}> Facebook/Instagram</label>
-        <label><input type="checkbox" id="mf-plat-ttyt" ${plats.includes('ttyt')?'checked':''}> TikTok/YouTube Shorts</label>
-      </div>
+        <label><input type="checkbox" id="mf-plat-fbig" ${plats.includes('fbig')?'checked':''}> Facebook/Instagram</label>      </div>
     </div>
     <div class="mf-field" style="margin-bottom:14px">
       <label>Hook</label>
@@ -1268,8 +1265,6 @@ async function saveEditModal(id){
   const newCaption = document.getElementById('mf-caption').value;
   const plats = [];
   if(document.getElementById('mf-plat-fbig').checked) plats.push('fbig');
-  if(document.getElementById('mf-plat-ttyt').checked) plats.push('ttyt');
-
   const patch = {
     status: document.getElementById('mf-status').value,
     scheduledDate: document.getElementById('mf-scheduled-date').value,
@@ -1479,7 +1474,7 @@ function dayCardHtml(d, isOccasion){
   const plats = effPlatforms(d);
   const category = effCategory(d, effIsOcc);
   const phaseColors = {awareness:'#2d5bff',trust:'#00a878',social:'#F7931A',conversion:'#e63946',inform:'#7b5cff',brand:'#c8862e',occasion:'#c837a8'};
-  const platformShort = { fbig:['FB','IG'], ttyt:['TikTok','Shorts'] };
+  const platformShort = { fbig:['FB','IG'] };
   const platBadges = plats.flatMap(p=>platformShort[p]||[p]);
   const status = effStatus(d);
   const topBadge = effIsOcc && isOccasion
@@ -1606,7 +1601,7 @@ function render(){
     document.getElementById('week-header').innerHTML=`
       <div class="week-label">${filterName}</div>
       <div class="week-theme">${filtered.length} of ${renderableDays.length} posts</div>
-      <div class="week-goal">${currentFilter==='ttyt' ? 'Video days only — static-image days skip this channel.' : ''}</div>`;
+      <div class="week-goal"></div>`;
     document.getElementById('filter-count').textContent = filtered.length + '/' + renderableDays.length + ' posts';
     document.getElementById('day-grid').innerHTML = filtered.map(d=>dayCardHtml(d,false)).join('');
   }
