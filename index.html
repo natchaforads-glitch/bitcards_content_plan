@@ -147,6 +147,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f5f5f3; co
 .copy-btn { padding:6px 14px; background:transparent; color:#2d5bff; border:1.5px solid #2d5bff; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
 .copy-btn:hover { background:#2d5bff; color:white; }
 .copy-btn.copied { background:#00a878; border-color:#00a878; color:white; }
+.img-prompt-row { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
 
 .visual-brief { padding-top:1rem; }
 .collapsible-section { border-top:1px solid #f0f0ee; padding-top:.9rem; margin-top:.9rem; }
@@ -1000,6 +1001,38 @@ function copyCaption(id,orig){
   });
 }
 
+// ── Copy a ready-to-use image-generation prompt (ChatGPT / Gemini / Midjourney) ──
+function buildImagePrompt(d, ratio){
+  const v = effVisual(d) || d.visual || {};
+  const size = ratio==='9:16' ? '9:16 vertical (1080x1920, Story/Reel)' : '1:1 square (1080x1080, feed post)';
+  return [
+    `Create a social media image for Bitcards (Bitcoin gift cards). Aspect ratio: ${size}.`,
+    '',
+    `Post topic: ${d.title}`,
+    `Background / setting: ${v.bg||''}`,
+    `Layout & typography: ${v.type||''}`,
+    `Props / subjects: ${v.props||''}`,
+    `Mood / reference: ${v.mood||''}`,
+    '',
+    'Brand style: clean, modern fintech look, Bitcoin orange (#F7931A) accent with white/dark neutrals, high-quality lighting, sharp detail.',
+    'Keep any on-image text short, correctly spelled and in English. No third-party brand logos or trademarks, no distorted hands or faces.'
+  ].join('\n');
+}
+function copyImgPrompt(id, ratio, btn){
+  const d = getAllRenderableDays().find(x=>x.id===id) || seasoningPlan.find(x=>x.id===id);
+  if(!d) return;
+  const label = btn.textContent;
+  navigator.clipboard.writeText(buildImagePrompt(d, ratio)).then(()=>{
+    btn.textContent='✓ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent=label; btn.classList.remove('copied'); },2000);
+  });
+}
+function imgPromptButtons(id){
+  return `<div class="img-prompt-row" onclick="event.stopPropagation()">
+    <button class="copy-btn" onclick="event.stopPropagation();copyImgPrompt(${id},'1:1',this)">🎨 Copy image prompt 1:1</button>
+    <button class="copy-btn" onclick="event.stopPropagation();copyImgPrompt(${id},'9:16',this)">🎨 9:16</button>
+  </div>`;
+}
 function compressImage(file){
   return new Promise((resolve,reject)=>{
     const reader=new FileReader();
@@ -1502,6 +1535,7 @@ function dayCardHtml(d, isOccasion){
         ${edited?'<span class="badge badge-edit">✏️ Edited</span>':''}
         ${nimgs?`<span class="badge badge-img">📎 ${nimgs} img${nimgs>1?'s':''}</span>`:''}
       </div>
+      ${imgPromptButtons(d.id)}
       <details class="collapsible-section" onclick="event.stopPropagation()">
         <summary>▼ Caption</summary>
         ${renderCaptionBlock(d)}
@@ -1616,6 +1650,7 @@ function render(){
         <div class="detail-title">${d.title}</div>
         <div class="detail-concept">${d.concept||''}</div>
         <div class="strategy-tag">📋 Strategy: ${d.strategy}</div>
+        ${imgPromptButtons(d.id)}
         <details class="collapsible-section">
           <summary>▼ Visual Brief</summary>
           <div class="visual-brief">
